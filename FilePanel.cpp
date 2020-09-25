@@ -4,11 +4,13 @@
 #include "colors.h"
 
 struct ListDirsResults {
+    bool isRoot;
     std::vector<std::wstring> dirs;
     std::vector<std::wstring> files;
 };
 
 ListDirsResults getListDirs(const std::wstring& path) {
+    bool isRoot = true;
     std::vector<std::wstring> dirs;
     std::vector<std::wstring> files;
 
@@ -19,6 +21,10 @@ ListDirsResults getListDirs(const std::wstring& path) {
     do {
         std::wstring name = findData.cFileName;
         if (name == L".") {
+            continue;
+        }
+        if (name == L"..") {
+            isRoot = false;
             continue;
         }
         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -32,12 +38,11 @@ ListDirsResults getListDirs(const std::wstring& path) {
     std::sort(files.begin(), files.end());
     std::sort(dirs.begin(), dirs.end());
 
-    return {dirs, files};
+    return {isRoot, dirs, files};
 }
 
 FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
     updateLines();
-    lines.setSelectedIdx(0);
     lastSelectedIdx = 0;
 }
 
@@ -52,8 +57,12 @@ void FilePanel::selectNext() {
 }
 
 void FilePanel::enter() {
-    if (lines.hasSelection() && lines.getSelectedText() == L"..") {
-        path = path.substr(0, path.rfind(L'\\'));
+    if (lines.hasSelection() && lines.getSelectedIdx() < dirsCount) {
+        if (lines.getSelectedText() == L"..") {
+            path = path.substr(0, path.rfind(L'\\'));
+        } else {
+            path = path + L'\\' + lines.getSelectedText();
+        }
         updateLines();
     }
 }
@@ -85,13 +94,20 @@ void FilePanel::updateLines() {
     auto listDirs = getListDirs(path);
     std::vector<std::wstring> newLines;
 
+    if (!listDirs.isRoot) {
+        newLines.emplace_back(L"..");
+    }
+
     for (auto&& dir : listDirs.dirs) {
         newLines.push_back(std::move(dir));
     }
+
+    dirsCount = newLines.size();
 
     for (auto&& file : listDirs.files) {
         newLines.push_back(std::move(file));
     }
 
     lines.setLines(newLines);
+    lines.setSelectedIdx(0);
 }

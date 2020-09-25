@@ -31,7 +31,7 @@ std::wstring Lines::getSelectedText() const {
 }
 
 void Lines::setSelectedIdx(int newIdx) {
-    selectedIdx = std::max(-1, std::min(newIdx, (int)lines.size()));
+    selectedIdx = std::max(-1, std::min(newIdx, (int)lines.size() - 1));
     if (hasSelection() && selectedIdx < scrollOffset) {
         scrollOffset = selectedIdx;
     }

@@ -23,6 +23,7 @@ private:
     void updateLines();
 
     int lastSelectedIdx = -1;
+    int dirsCount = 0;
     Rect rect;
     std::wstring path;
     Lines lines;
