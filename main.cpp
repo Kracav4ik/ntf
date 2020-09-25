@@ -1,20 +1,26 @@
+#include <iostream>
 #include "Lines.h"
 #include "Screen.h"
 
 #include "colors.h"
+#include "FilePanel.h"
 
 int main() {
     Screen s(80, 25);
     s.setTitle(L"Not too far");
     s.setCursorVisible(false);
 
+    std::wstring appDir = L".";
 
-    Rect r1{0, 0, 40, 23};
-    Rect r2{40, 0, 40, 23};
-    Lines left({L"Осторожно слева!"});
-    Lines right({L"Осторожно справа!"});
+    FilePanel leftPanel({0, 0, 40, 23}, appDir);
+    FilePanel rightPanel({40, 0, 40, 23}, appDir);
+    rightPanel.unselect();
+//    Rect r1{0, 0, 40, 23};
+//    Rect r2{40, 0, 40, 23};
+//    Lines left({L"Осторожно слева!"});
+//    Lines right({L"Осторожно справа!"});
     Lines bottom({L"Хочется глубокомысленную мысль, но ее нет :("});
-    left.setSelectedIdx(0);
+//    left.setSelectedIdx(0);
 //    Rect r1{10, 2, 20, 5};
 //    Lines l1({L"Осторожно!"});
 
@@ -57,17 +63,24 @@ int main() {
     auto repaint = [&]() {
         s.clear(FG::GREY | BG::BLACK);
 
-        s.paintRect(r1, FG::CYAN | BG::DARK_BLUE);
-        left.drawOn(s, r1.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
-        s.frame(r1);
+        leftPanel.drawOn(s);
+        rightPanel.drawOn(s);
 
-        s.paintRect(r2, FG::CYAN | BG::DARK_BLUE);
-        right.drawOn(s, r2.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
-        s.frame(r2);
-
+//        s.paintRect(r1, FG::CYAN | BG::DARK_BLUE);
+//        left.drawOn(s, r1.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
+//        s.frame(r1);
+//
+//        s.paintRect(r2, FG::CYAN | BG::DARK_BLUE);
+//        right.drawOn(s, r2.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
+//        s.frame(r2);
+//
         bottom.drawTextOn(s, {0, 23, 80, 1});
 
         s.flip();
+    };
+
+    auto getCurrentPanel = [&]() -> FilePanel& {
+        return rightPanel.hasSelection() ? rightPanel : leftPanel;
     };
 
     bool running = true;
@@ -75,8 +88,11 @@ int main() {
         running = false;
     });
     s.handleKey(VK_TAB, 0, [&]() {
-        left.hasSelection() ? left.unselect() : left.setSelectedIdx(0);
-        right.hasSelection() ? right.unselect() : right.setSelectedIdx(0);
+        leftPanel.hasSelection() ? leftPanel.unselect() : leftPanel.select();
+        rightPanel.hasSelection() ? rightPanel.unselect() : rightPanel.select();
+        bottom.setLines({ getCurrentPanel().getPath() });
+//        left.hasSelection() ? left.unselect() : left.setSelectedIdx(0);
+//        right.hasSelection() ? right.unselect() : right.setSelectedIdx(0);
     });
     s.handleKey(' ', 0, [&]() {
 //        l5.setSelectedIdx(0);
@@ -84,14 +100,20 @@ int main() {
 //        l6.setSelectedIdx(0);
     });
     s.handleKey(VK_UP, 0, [&]() {
+        getCurrentPanel().selectPrev();
 //        l5.selectPrev();
 //        l5.scrollToSelection(4);
 //        l6.selectPrev();
     });
     s.handleKey(VK_DOWN, 0, [&]() {
+        getCurrentPanel().selectNext();
 //        l5.selectNext();
 //        l5.scrollToSelection(4);
 //        l6.selectNext();
+    });
+
+    s.handleKey(VK_RETURN, 0, [&]() {
+        getCurrentPanel().enter();
     });
 
     repaint();
