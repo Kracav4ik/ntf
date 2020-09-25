@@ -7,12 +7,20 @@
 class Screen;
 struct Rect;
 
+struct StyledText {
+    std::wstring text;
+    WORD normalAttr;
+    WORD selectedAttr;
+};
+
 class Lines {
 public:
     Lines(std::vector<std::wstring> lines = {}, SHORT padX = 0, SHORT padY = 0);
 
-    const std::vector<std::wstring>& getLines() const;
-    void setLines(std::vector<std::wstring> newLines);
+    void setLines(std::vector<std::wstring> textLines, WORD normalAttr = 0, WORD selectedAttr = 0);
+    void setLines(std::vector<StyledText> newLines);
+
+    int findLine(const std::wstring& text) const;
 
     int getSelectedIdx() const;
     std::wstring getSelectedText() const;
@@ -28,10 +36,12 @@ public:
     void setScrollOffset(int newOffset);
 
     void drawTextOn(Screen& screen, const Rect& rect, bool centered = false);
-    void drawOn(Screen& screen, const Rect& rect, WORD colorAttr, WORD selectionAttr = 0, bool centered = false);
+    void drawOn(Screen& screen, const Rect& rect, WORD backgroundAttr, bool centered = false);
 
 private:
-    std::vector<std::wstring> lines;
+    void _drawOn(Screen& screen, const Rect& rect, bool centered, bool withAttrs);
+
+    std::vector<StyledText> lines;
     SHORT padX;
     SHORT padY;
     int selectedIdx = -1;

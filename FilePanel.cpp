@@ -43,6 +43,7 @@ ListDirsResults getListDirs(const std::wstring& path) {
 
 FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
     updateLines();
+    lines.setSelectedIdx(0);
     lastSelectedIdx = 0;
 }
 
@@ -58,18 +59,29 @@ void FilePanel::selectNext() {
 
 void FilePanel::enter() {
     if (lines.hasSelection() && lines.getSelectedIdx() < dirsCount) {
-        if (lines.getSelectedText() == L"..") {
+        std::wstring selectedName = lines.getSelectedText();
+        std::wstring currentDir = path.substr(path.rfind(L'\\') + 1);
+        if (selectedName == L"..") {
             path = path.substr(0, path.rfind(L'\\'));
         } else {
-            path = path + L'\\' + lines.getSelectedText();
+            path = path + L'\\' + selectedName;
         }
         updateLines();
+        int newSelection = 0;
+        if (selectedName == L"..") {
+            int nameIdx = lines.findLine(currentDir);
+            if (nameIdx != -1) {
+                newSelection = nameIdx;
+            }
+        }
+        lines.setSelectedIdx(newSelection);
+        lines.scrollToSelection(rect.h - 2);
     }
 }
 
 void FilePanel::drawOn(Screen& s) {
     s.paintRect(rect, FG::CYAN | BG::DARK_BLUE);
-    lines.drawOn(s, rect.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
+    lines.drawOn(s, rect.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE);
     s.frame(rect);
 }
 
@@ -92,22 +104,21 @@ void FilePanel::unselect() {
 
 void FilePanel::updateLines() {
     auto listDirs = getListDirs(path);
-    std::vector<std::wstring> newLines;
+    std::vector<StyledText> newLines;
 
     if (!listDirs.isRoot) {
-        newLines.emplace_back(L"..");
+        newLines.push_back({L"..", FG::WHITE | BG::DARK_BLUE, FG::WHITE | BG::DARK_CYAN});
     }
 
     for (auto&& dir : listDirs.dirs) {
-        newLines.push_back(std::move(dir));
+        newLines.push_back({std::move(dir), FG::WHITE | BG::DARK_BLUE, FG::WHITE | BG::DARK_CYAN});
     }
 
     dirsCount = newLines.size();
 
     for (auto&& file : listDirs.files) {
-        newLines.push_back(std::move(file));
+        newLines.push_back({std::move(file), FG::CYAN | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN});
     }
 
     lines.setLines(newLines);
-    lines.setSelectedIdx(0);
 }

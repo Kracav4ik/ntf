@@ -3,20 +3,33 @@
 #include "Screen.h"
 
 Lines::Lines(std::vector<std::wstring> lines, SHORT padX, SHORT padY)
-    : lines(std::move(lines))
-    , padX(padX)
+    : padX(padX)
     , padY(padY)
 {
+    setLines(std::move(lines));
 }
 
-const std::vector<std::wstring>& Lines::getLines() const {
-    return lines;
+void Lines::setLines(std::vector<std::wstring> textLines, WORD normalAttr, WORD selectedAttr) {
+    std::vector<StyledText> newLines;
+    for (auto&& line : textLines) {
+        newLines.push_back({std::move(line), normalAttr, selectedAttr});
+    }
+    setLines(std::move(newLines));
 }
 
-void Lines::setLines(std::vector<std::wstring> newLines) {
+void Lines::setLines(std::vector<StyledText> newLines) {
     lines = std::move(newLines);
     setSelectedIdx(getSelectedIdx());
     setScrollOffset(getScrollOffset());
+}
+
+int Lines::findLine(const std::wstring& text) const {
+    for (int i = 0; i < lines.size(); ++i) {
+        if (lines[i].text == text) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 int Lines::getSelectedIdx() const {
@@ -27,7 +40,7 @@ std::wstring Lines::getSelectedText() const {
     if (!hasSelection()) {
         return L"";
     }
-    return lines[selectedIdx];
+    return lines[selectedIdx].text;
 }
 
 void Lines::setSelectedIdx(int newIdx) {
@@ -81,6 +94,15 @@ void Lines::setScrollOffset(int newOffset) {
 }
 
 void Lines::drawTextOn(Screen& screen, const Rect& rect, bool centered) {
+    _drawOn(screen, rect, centered, false);
+}
+
+void Lines::drawOn(Screen& screen, const Rect& rect, WORD backgroundAttr, bool centered) {
+    screen.paintRect(rect, backgroundAttr);
+    _drawOn(screen, rect.withPadding(padX, padY), centered, true);
+}
+
+void Lines::_drawOn(Screen& screen, const Rect& rect, bool centered, bool withAttrs) {
     COORD origin = rect.getLeftTop();
     int linesCount = lines.size() - scrollOffset;
     if (centered && linesCount < rect.h) {
@@ -90,26 +112,12 @@ void Lines::drawTextOn(Screen& screen, const Rect& rect, bool centered) {
         if (origin.Y >= rect.y + rect.h) {
             break;
         }
-        screen.boundedLine(origin, rect.w, lines[idx], centered);
+        if (withAttrs) {
+            Rect line{origin.X, origin.Y, rect.w, 1};
+            WORD attr = idx == selectedIdx ? lines[idx].selectedAttr : lines[idx].normalAttr;
+            screen.paintRect(line, attr);
+        }
+        screen.boundedLine(origin, rect.w, lines[idx].text, centered);
         ++origin.Y;
     }
-}
-
-void Lines::drawOn(Screen& screen, const Rect& rect, WORD colorAttr, WORD selectionAttr, bool centered) {
-    screen.paintRect(rect, colorAttr);
-    if (hasSelection()) {
-        int selectionOffset = selectedIdx - scrollOffset;
-        if (selectionOffset >= 0 && selectionOffset < rect.h - 2*padY) {
-            SHORT selectionY = rect.y + selectionOffset + padY;
-            if (centered) {
-                int linesCount = lines.size() - scrollOffset;
-                if (linesCount < rect.h) {
-                    selectionY += (rect.h - linesCount)/2;
-                }
-            }
-            Rect selectionRect{rect.x, selectionY, rect.w, 1};
-            screen.paintRect(selectionRect.withPadX(padX), selectionAttr);
-        }
-    }
-    drawTextOn(screen, rect.withPadding(padX, padY), centered);
 }
