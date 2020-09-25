@@ -20,6 +20,8 @@ public:
     void unselect();
 
 private:
+    void updateLines();
+
     int lastSelectedIdx = -1;
     Rect rect;
     std::wstring path;

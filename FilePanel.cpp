@@ -1,8 +1,28 @@
 #include "FilePanel.h"
 #include "colors.h"
 
+std::vector<std::wstring> getListDirs(const std::wstring& path) {
+    std::wstring mask = path + L"\\*";
+    WIN32_FIND_DATAW findData;
+    HANDLE find = FindFirstFileW(mask.c_str(), &findData);
+
+    std::vector<std::wstring> dirs;
+
+    do {
+        std::wstring name = findData.cFileName;
+        if (name == L".") {
+            continue;
+        }
+        dirs.push_back(std::move(name));
+    } while (FindNextFileW(find, &findData) != 0);
+
+    FindClose(find);
+
+    return dirs;
+}
+
 FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
-    lines.setLines({L"Тревога!", L"Тревога!", L"Волк", L"украл зайчат"});
+    updateLines();
     lines.setSelectedIdx(0);
     lastSelectedIdx = 0;
 }
@@ -18,7 +38,10 @@ void FilePanel::selectNext() {
 }
 
 void FilePanel::enter() {
-//    TODO: DO SOMETHING
+    if (lines.hasSelection() && lines.getSelectedText() == L"..") {
+        path = path.substr(0, path.rfind(L'\\'));
+        updateLines();
+    }
 }
 
 void FilePanel::drawOn(Screen& s) {
@@ -42,4 +65,8 @@ void FilePanel::select() {
 void FilePanel::unselect() {
     lastSelectedIdx = lines.getSelectedIdx();
     lines.unselect();
+}
+
+void FilePanel::updateLines() {
+    lines.setLines(getListDirs(path));
 }

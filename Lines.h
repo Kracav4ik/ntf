@@ -15,6 +15,7 @@ public:
     void setLines(std::vector<std::wstring> newLines);
 
     int getSelectedIdx() const;
+    std::wstring getSelectedText() const;
     void setSelectedIdx(int newIdx);
     bool hasSelection() const;
     void unselect();

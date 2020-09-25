@@ -5,12 +5,19 @@
 #include "colors.h"
 #include "FilePanel.h"
 
+std::wstring getFullPath(const std::wstring& path) {
+    DWORD size = GetFullPathNameW(path.c_str(), 0, nullptr, nullptr);
+    std::wstring result(size - 1, L' ');
+    GetFullPathNameW(path.c_str(), size, result.data(), nullptr);
+    return result;
+}
+
 int main() {
     Screen s(80, 25);
     s.setTitle(L"Not too far");
     s.setCursorVisible(false);
 
-    std::wstring appDir = L".";
+    std::wstring appDir = getFullPath(L".");
 
     FilePanel leftPanel({0, 0, 40, 23}, appDir);
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
@@ -19,7 +26,7 @@ int main() {
 //    Rect r2{40, 0, 40, 23};
 //    Lines left({L"Осторожно слева!"});
 //    Lines right({L"Осторожно справа!"});
-    Lines bottom({L"Хочется глубокомысленную мысль, но ее нет :("});
+    Lines bottom({ appDir });
 //    left.setSelectedIdx(0);
 //    Rect r1{10, 2, 20, 5};
 //    Lines l1({L"Осторожно!"});
@@ -114,6 +121,7 @@ int main() {
 
     s.handleKey(VK_RETURN, 0, [&]() {
         getCurrentPanel().enter();
+        bottom.setLines({ getCurrentPanel().getPath() });
     });
 
     repaint();

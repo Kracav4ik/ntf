@@ -23,6 +23,13 @@ int Lines::getSelectedIdx() const {
     return selectedIdx;
 }
 
+std::wstring Lines::getSelectedText() const {
+    if (!hasSelection()) {
+        return L"";
+    }
+    return lines[selectedIdx];
+}
+
 void Lines::setSelectedIdx(int newIdx) {
     selectedIdx = std::max(-1, std::min(newIdx, (int)lines.size()));
     if (hasSelection() && selectedIdx < scrollOffset) {
