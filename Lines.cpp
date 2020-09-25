@@ -2,19 +2,16 @@
 
 #include "Screen.h"
 
-Lines::Lines(std::vector<std::wstring> lines, SHORT padX, SHORT padY)
-    : padX(padX)
-    , padY(padY)
-{
-    setLines(std::move(lines));
+std::vector<StyledText> styledText(std::vector<std::wstring> textLines, WORD normalAttr, WORD selectedAttr) {
+    std::vector<StyledText> result;
+    for (auto&& line : textLines) {
+        result.push_back({std::move(line), normalAttr, selectedAttr});
+    }
+    return result;
 }
 
-void Lines::setLines(std::vector<std::wstring> textLines, WORD normalAttr, WORD selectedAttr) {
-    std::vector<StyledText> newLines;
-    for (auto&& line : textLines) {
-        newLines.push_back({std::move(line), normalAttr, selectedAttr});
-    }
-    setLines(std::move(newLines));
+Lines::Lines(std::vector<StyledText> lines) {
+    setLines(std::move(lines));
 }
 
 void Lines::setLines(std::vector<StyledText> newLines) {
@@ -97,9 +94,8 @@ void Lines::drawTextOn(Screen& screen, const Rect& rect, bool centered) {
     _drawOn(screen, rect, centered, false);
 }
 
-void Lines::drawOn(Screen& screen, const Rect& rect, WORD backgroundAttr, bool centered) {
-    screen.paintRect(rect, backgroundAttr);
-    _drawOn(screen, rect.withPadding(padX, padY), centered, true);
+void Lines::drawOn(Screen& screen, const Rect& rect, bool centered) {
+    _drawOn(screen, rect, centered, true);
 }
 
 void Lines::_drawOn(Screen& screen, const Rect& rect, bool centered, bool withAttrs) {

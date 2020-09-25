@@ -26,7 +26,7 @@ int main() {
 //    Rect r2{40, 0, 40, 23};
 //    Lines left({L"Осторожно слева!"});
 //    Lines right({L"Осторожно справа!"});
-    Lines bottom({ appDir });
+    Lines bottom;
 //    left.setSelectedIdx(0);
 //    Rect r1{10, 2, 20, 5};
 //    Lines l1({L"Осторожно!"});
@@ -81,13 +81,16 @@ int main() {
 //        right.drawOn(s, r2.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE, FG::BLACK | BG::DARK_CYAN);
 //        s.frame(r2);
 //
-        bottom.drawTextOn(s, {0, 23, 80, 1});
+        bottom.drawOn(s, {0, 23, 80, 1});
 
         s.flip();
     };
 
     auto getCurrentPanel = [&]() -> FilePanel& {
         return rightPanel.hasSelection() ? rightPanel : leftPanel;
+    };
+    auto updateBottom = [&]() {
+        bottom.setLines(styledText({ getCurrentPanel().getPath() }, FG::GREY | BG::BLACK));
     };
 
     bool running = true;
@@ -97,7 +100,7 @@ int main() {
     s.handleKey(VK_TAB, 0, [&]() {
         leftPanel.hasSelection() ? leftPanel.unselect() : leftPanel.select();
         rightPanel.hasSelection() ? rightPanel.unselect() : rightPanel.select();
-        bottom.setLines({ getCurrentPanel().getPath() });
+        updateBottom();
 //        left.hasSelection() ? left.unselect() : left.setSelectedIdx(0);
 //        right.hasSelection() ? right.unselect() : right.setSelectedIdx(0);
     });
@@ -121,9 +124,10 @@ int main() {
 
     s.handleKey(VK_RETURN, 0, [&]() {
         getCurrentPanel().enter();
-        bottom.setLines({ getCurrentPanel().getPath() });
+        updateBottom();
     });
 
+    updateBottom();
     repaint();
     while (running) {
         s.processEvent();

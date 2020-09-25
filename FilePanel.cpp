@@ -81,7 +81,7 @@ void FilePanel::enter() {
 
 void FilePanel::drawOn(Screen& s) {
     s.paintRect(rect, FG::CYAN | BG::DARK_BLUE);
-    lines.drawOn(s, rect.withPadding(1, 1), FG::WHITE | BG::DARK_BLUE);
+    lines.drawOn(s, rect.withPadding(1, 1));
     s.frame(rect);
 }
 
