@@ -1,24 +1,38 @@
+#include <iostream>
+
 #include "FilePanel.h"
 #include "colors.h"
 
-std::vector<std::wstring> getListDirs(const std::wstring& path) {
+struct ListDirsResults {
+    std::vector<std::wstring> dirs;
+    std::vector<std::wstring> files;
+};
+
+ListDirsResults getListDirs(const std::wstring& path) {
+    std::vector<std::wstring> dirs;
+    std::vector<std::wstring> files;
+
     std::wstring mask = path + L"\\*";
     WIN32_FIND_DATAW findData;
     HANDLE find = FindFirstFileW(mask.c_str(), &findData);
-
-    std::vector<std::wstring> dirs;
 
     do {
         std::wstring name = findData.cFileName;
         if (name == L".") {
             continue;
         }
-        dirs.push_back(std::move(name));
+        if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            dirs.push_back(std::move(name));
+        } else {
+            files.push_back(std::move(name));
+        }
     } while (FindNextFileW(find, &findData) != 0);
 
     FindClose(find);
+    std::sort(files.begin(), files.end());
+    std::sort(dirs.begin(), dirs.end());
 
-    return dirs;
+    return {dirs, files};
 }
 
 FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
@@ -68,5 +82,16 @@ void FilePanel::unselect() {
 }
 
 void FilePanel::updateLines() {
-    lines.setLines(getListDirs(path));
+    auto listDirs = getListDirs(path);
+    std::vector<std::wstring> newLines;
+
+    for (auto&& dir : listDirs.dirs) {
+        newLines.push_back(std::move(dir));
+    }
+
+    for (auto&& file : listDirs.files) {
+        newLines.push_back(std::move(file));
+    }
+
+    lines.setLines(newLines);
 }
