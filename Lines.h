@@ -31,6 +31,8 @@ public:
 
     void selectPrev();
     void selectNext();
+    void selectFirst();
+    void selectLast();
     void scrollToSelection(int visibleHeight);
 
     int getScrollOffset() const;

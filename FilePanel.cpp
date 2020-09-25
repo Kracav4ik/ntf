@@ -49,12 +49,22 @@ FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(p
 
 void FilePanel::selectPrev() {
     lines.selectPrev();
-    lines.scrollToSelection(rect.h - 2);
+    scrollToSelection();
 }
 
 void FilePanel::selectNext() {
     lines.selectNext();
-    lines.scrollToSelection(rect.h - 2);
+    scrollToSelection();
+}
+
+void FilePanel::selectFirst() {
+    lines.selectFirst();
+    scrollToSelection();
+}
+
+void FilePanel::selectLast() {
+    lines.selectLast();
+    scrollToSelection();
 }
 
 void FilePanel::enter() {
@@ -75,7 +85,7 @@ void FilePanel::enter() {
             }
         }
         lines.setSelectedIdx(newSelection);
-        lines.scrollToSelection(rect.h - 2);
+        scrollToSelection();
     }
 }
 
@@ -121,4 +131,8 @@ void FilePanel::updateLines() {
     }
 
     lines.setLines(newLines);
+}
+
+void FilePanel::scrollToSelection() {
+    lines.scrollToSelection(rect.h - 2);
 }

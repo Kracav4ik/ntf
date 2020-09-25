@@ -121,6 +121,12 @@ int main() {
 //        l5.scrollToSelection(4);
 //        l6.selectNext();
     });
+    s.handleKey(VK_HOME, 0, [&]() {
+        getCurrentPanel().selectFirst();
+    });
+    s.handleKey(VK_END, 0, [&]() {
+        getCurrentPanel().selectLast();
+    });
 
     s.handleKey(VK_RETURN, 0, [&]() {
         getCurrentPanel().enter();

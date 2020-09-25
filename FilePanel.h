@@ -9,6 +9,8 @@ public:
 
     void selectPrev();
     void selectNext();
+    void selectFirst();
+    void selectLast();
     void enter();
 
     void drawOn(Screen& s);
@@ -21,6 +23,7 @@ public:
 
 private:
     void updateLines();
+    void scrollToSelection();
 
     int lastSelectedIdx = -1;
     int dirsCount = 0;

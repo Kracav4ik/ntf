@@ -73,6 +73,20 @@ void Lines::selectNext() {
     }
 }
 
+void Lines::selectFirst() {
+    if (!hasSelection()) {
+        return;
+    }
+    selectedIdx = 0;
+}
+
+void Lines::selectLast() {
+    if (!hasSelection()) {
+        return;
+    }
+    selectedIdx = lines.size() - 1;
+}
+
 void Lines::scrollToSelection(int visibleHeight) {
     if (selectedIdx < scrollOffset) {
         scrollOffset = selectedIdx;
