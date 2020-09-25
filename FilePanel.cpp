@@ -35,10 +35,25 @@ ListDirsResults getListDirs(const std::wstring& path) {
     } while (FindNextFileW(find, &findData) != 0);
 
     FindClose(find);
-    std::sort(files.begin(), files.end());
-    std::sort(dirs.begin(), dirs.end());
+    auto compareFunc = [](const std::wstring& s1, const std::wstring& s2) {
+        int result = CompareStringW(LOCALE_SYSTEM_DEFAULT, NORM_IGNORECASE | SORT_STRINGSORT, s1.c_str(), s1.size(), s2.c_str(), s2.size());
+        return result == CSTR_LESS_THAN;
+    };
+    std::sort(files.begin(), files.end(), compareFunc);
+    std::sort(dirs.begin(), dirs.end(), compareFunc);
 
     return {isRoot, dirs, files};
+}
+
+bool canChangeDir(const std::wstring& path) {
+    std::wstring mask = path + L"\\*";
+    WIN32_FIND_DATAW findData;
+    HANDLE h = FindFirstFileW(mask.c_str(), &findData);
+    if (h == INVALID_HANDLE_VALUE ) {
+        return false;
+    }
+    FindClose(h);
+    return true;
 }
 
 FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
@@ -71,11 +86,16 @@ void FilePanel::enter() {
     if (lines.hasSelection() && lines.getSelectedIdx() < dirsCount) {
         std::wstring selectedName = lines.getSelectedText();
         std::wstring currentDir = path.substr(path.rfind(L'\\') + 1);
+        std::wstring newPath;
         if (selectedName == L"..") {
-            path = path.substr(0, path.rfind(L'\\'));
+            newPath = path.substr(0, path.rfind(L'\\'));
         } else {
-            path = path + L'\\' + selectedName;
+            newPath = path + L'\\' + selectedName;
         }
+        if (!canChangeDir(newPath)) {
+            return;
+        }
+        path = std::move(newPath);
         updateLines();
         int newSelection = 0;
         if (selectedName == L"..") {

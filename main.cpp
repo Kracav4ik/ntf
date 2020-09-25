@@ -38,7 +38,12 @@ int main() {
         return rightPanel.hasSelection() ? rightPanel : leftPanel;
     };
     auto updateBottom = [&]() {
-        bottom.setLines(styledText({ getCurrentPanel().getPath() }, FG::GREY | BG::BLACK));
+        std::wstring path = getCurrentPanel().getPath();
+        if (path[path.size() - 1] == L':') {
+            path += L'\\';
+        }
+        path += L'>';
+        bottom.setLines(styledText({ std::move(path) }, FG::GREY | BG::BLACK));
     };
 
     s.handleKey(VK_F10, 0, [&]() {
