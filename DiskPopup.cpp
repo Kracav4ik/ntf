@@ -8,6 +8,9 @@
 #include <iomanip>
 
 static const SHORT INFO_LINES = 4;
+static const int TYPE_W = 20;
+static const int TOTAL_W = 12;
+static const int FREE_W = 12;
 
 std::wstring getDriveType(const std::wstring& path) {
     switch (GetDriveTypeW(path.c_str())) {
@@ -19,6 +22,34 @@ std::wstring getDriveType(const std::wstring& path) {
         case DRIVE_RAMDISK: return L"RAM-диск";
         default: return L"Неизвестный";
     }
+}
+
+std::wstring getByteSizeText(uint64_t num) {
+    static const uint64_t K = 1024;
+    static const uint64_t M = K*1024;
+    static const uint64_t G = M*1024;
+    static const uint64_t T = G*1024;
+    std::wstringstream result;
+    result << std::setprecision(2) << std::fixed;
+    if (num < K) {
+        result << num << L" Б";
+    } else  if (num < M) {
+        result << num / (double)K << L" К";
+    } else if (num < G) {
+        result << num / (double)M << L" М";
+    } else if (num < T) {
+        result << num / (double)G << L" Г";
+    } else {
+        result << num / (double)T << L" Т";
+    }
+    return result.str();
+}
+
+std::wstring align(const std::wstring& s, int size) {
+    if (s.size() > size) {
+        s.substr(0, size);
+    }
+    return s + std::wstring(size - s.size(), L' ');
 }
 
 std::wstring to_hex(DWORD num) {
@@ -39,6 +70,21 @@ std::vector<std::wstring> getDriveString() {
     for (int i = start; i < size - 1; ++i) {
         if (chars[i] == L'\0') {
             std::wstring rootName = chars.data() + start;
+
+            DWORD sectorsPerCluster;
+            DWORD bytesPerSector;
+            DWORD numberOfFreeClusters;
+            DWORD totalNumberOfClusters;
+
+            GetDiskFreeSpaceW(rootName.data(), &sectorsPerCluster, &bytesPerSector, &numberOfFreeClusters, &totalNumberOfClusters);
+
+            /*
+            std::wcout << L"rootName: " << rootName << std::endl;
+            std::wcout << L"  sectorsPerCluster: " << sectorsPerCluster << std::endl;
+            std::wcout << L"  bytesPerSector: " << bytesPerSector << std::endl;
+            std::wcout << L"  numberOfFreeClusters: " << numberOfFreeClusters << std::endl;
+            std::wcout << L"  totalNumberOfClusters: " << totalNumberOfClusters << std::endl;
+
             std::vector<wchar_t> volumeInfo(MAX_PATH + 1);
             std::vector<wchar_t> fileSysName(MAX_PATH + 1);
             DWORD serialNum;
@@ -47,7 +93,6 @@ std::vector<std::wstring> getDriveString() {
 
             GetVolumeInformationW(rootName.data(), volumeInfo.data(), volumeInfo.size(), &serialNum, &maxCompLen, &sysFlags, fileSysName.data(), fileSysName.size());
 
-            /*
             std::wcout << L"rootName: " << rootName << std::endl;
             std::wcout << L"  volumeInfo: " << volumeInfo.data() << std::endl;
             std::wcout << L"  fileSysName: " << fileSysName.data() << std::endl;
@@ -77,7 +122,13 @@ std::vector<std::wstring> getDriveString() {
             if (sysFlags & FILE_VOLUME_QUOTAS) std::wcout << L"    FILE_VOLUME_QUOTAS" << std::endl;
             //*/
 
-            result.emplace_back(rootName.substr(0, 2) + L" " + getDriveType(rootName));
+            std::wstring disk = align(rootName.substr(0, 2) + L" " + getDriveType(rootName), TYPE_W);
+            std::wstring totalSize = getByteSizeText(bytesPerSector * sectorsPerCluster * (uint64_t)totalNumberOfClusters);
+            totalSize = align(totalSize, TOTAL_W);
+            std::wstring freeSize = getByteSizeText(bytesPerSector * sectorsPerCluster * (uint64_t)numberOfFreeClusters);
+            freeSize = align(freeSize, FREE_W);
+
+            result.emplace_back(disk + totalSize + freeSize);
             start = i + 1;
         }
     }
@@ -92,11 +143,14 @@ DiskPopup::DiskPopup(SHORT xLeft, SHORT xRight, SHORT y, SHORT w, SHORT h)
     , w(w)
     , h(h)
 {
-    GetLogicalDrives();
-    diskList.setLines(styledText(getDriveString(), FG::WHITE | BG::DARK_CYAN, FG::WHITE | BG::BLACK));
+    fillDrivesList();
     diskList.setSelectedIdx(0);
 
     updateDiskInfo();
+}
+
+void DiskPopup::fillDrivesList() {
+    diskList.setLines(styledText(getDriveString(), FG::WHITE | BG::DARK_CYAN, FG::WHITE | BG::BLACK));
 }
 
 void DiskPopup::updateDiskInfo() {
@@ -133,6 +187,7 @@ std::wstring DiskPopup::selectedDisk() const {
 }
 
 void DiskPopup::registerKeys(Screen& screen) {
+    // TODO: make modal
     screen.tryHandleKey(VK_F1, ANY_ALT_PRESSED, [this]() {
         if (isVisible) {
             return EventState::Unhandled;
@@ -161,6 +216,42 @@ void DiskPopup::registerKeys(Screen& screen) {
             return EventState::Unhandled;
         }
         diskList.selectNext();
+        diskList.scrollToSelection(diskListRect().h);
+        updateDiskInfo();
+        return EventState::Handled;
+    });
+    screen.tryHandleKey(VK_PRIOR, 0, [this]() {
+        if (!isVisible) {
+            return EventState::Unhandled;
+        }
+        diskList.moveSelection(-diskListRect().h + 1);
+        diskList.scrollToSelection(diskListRect().h);
+        updateDiskInfo();
+        return EventState::Handled;
+    });
+    screen.tryHandleKey(VK_NEXT, 0, [this]() {
+        if (!isVisible) {
+            return EventState::Unhandled;
+        }
+        diskList.moveSelection(diskListRect().h - 1);
+        diskList.scrollToSelection(diskListRect().h);
+        updateDiskInfo();
+        return EventState::Handled;
+    });
+    screen.tryHandleKey(VK_HOME, 0, [this]() {
+        if (!isVisible) {
+            return EventState::Unhandled;
+        }
+        diskList.selectFirst();
+        diskList.scrollToSelection(diskListRect().h);
+        updateDiskInfo();
+        return EventState::Handled;
+    });
+    screen.tryHandleKey(VK_END, 0, [this]() {
+        if (!isVisible) {
+            return EventState::Unhandled;
+        }
+        diskList.selectLast();
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
         return EventState::Handled;
@@ -198,6 +289,7 @@ void DiskPopup::drawOn(Screen& screen) {
     screen.paintRect(rect, FG::WHITE | BG::DARK_CYAN);
 
     screen.frame(frameRect());
+    screen.textOut(innerRect().getLeftTop(), align(L"   Тип", TYPE_W) + align(L"Всего", TOTAL_W) + align(L"Свободно", FREE_W));
 
     diskList.drawOn(screen, diskListRect());
     screen.separator(diskInfoRect().moved(0, -1).withPadX(-1).withH(1));
@@ -219,7 +311,7 @@ Rect DiskPopup::innerRect() const {
 
 Rect DiskPopup::diskListRect() const {
     Rect inner = innerRect();
-    return inner.withH(inner.h - INFO_LINES - 1);
+    return inner.moved(0, 1).withH(inner.h - INFO_LINES - 2);
 }
 
 Rect DiskPopup::diskInfoRect() const {
@@ -228,6 +320,8 @@ Rect DiskPopup::diskInfoRect() const {
 }
 
 void DiskPopup::show(bool left) {
+    fillDrivesList();
+    updateDiskInfo();
     isLeft = left;
     isVisible = true;
 }

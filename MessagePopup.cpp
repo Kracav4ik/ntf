@@ -17,6 +17,7 @@ void MessagePopup::show(std::vector<std::wstring> text) {
 }
 
 void MessagePopup::registerKeys(Screen& screen) {
+    // TODO: make modal
     screen.tryHandleKey(VK_RETURN, 0, []() {
         MessagePopup& popup = get();
         if (!popup.isVisible) {

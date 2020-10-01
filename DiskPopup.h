@@ -28,6 +28,7 @@ private:
     Rect diskInfoRect() const;
     void show(bool left);
     void hide();
+    void fillDrivesList();
     void updateDiskInfo();
 
     SHORT xLeft;
