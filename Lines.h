@@ -29,6 +29,7 @@ public:
     bool hasSelection() const;
     void unselect();
 
+    void moveSelection(int delta);
     void selectPrev();
     void selectNext();
     void selectFirst();

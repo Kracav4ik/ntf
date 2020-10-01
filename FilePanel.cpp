@@ -3,6 +3,8 @@
 #include "FilePanel.h"
 #include "colors.h"
 
+#include <iostream>
+
 static const SHORT BOTTOM = 3;
 
 struct ListDirsResults {
@@ -12,7 +14,7 @@ struct ListDirsResults {
 };
 
 ListDirsResults getListDirs(const std::wstring& path) {
-    bool isRoot = true;
+    bool isRoot = path.size() == 2 && path[1] == L':';
     std::vector<std::wstring> dirs;
     std::vector<std::wstring> files;
 
@@ -22,11 +24,7 @@ ListDirsResults getListDirs(const std::wstring& path) {
 
     do {
         std::wstring name = findData.cFileName;
-        if (name == L".") {
-            continue;
-        }
-        if (name == L"..") {
-            isRoot = false;
+        if (name == L"." || name == L"..") {  // ".." entry reported for S:\ the root of a network drive
             continue;
         }
         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -58,10 +56,8 @@ bool canChangeDir(const std::wstring& path) {
     return true;
 }
 
-FilePanel::FilePanel(Rect rect, std::wstring path): rect(rect), path(std::move(path)) {
-    updateLines();
-    lines.setSelectedIdx(0);
-    lastSelectedIdx = 0;
+FilePanel::FilePanel(Rect rect, std::wstring initialPath): rect(rect) {
+    setPath(std::move(initialPath));
 }
 
 void FilePanel::selectPrev() {
@@ -71,6 +67,16 @@ void FilePanel::selectPrev() {
 
 void FilePanel::selectNext() {
     lines.selectNext();
+    scrollToSelection();
+}
+
+void FilePanel::selectPageUp() {
+    lines.moveSelection(-visibleHeight() + 1);
+    scrollToSelection();
+}
+
+void FilePanel::selectPageDown() {
+    lines.moveSelection(visibleHeight() - 1);
     scrollToSelection();
 }
 
@@ -125,6 +131,20 @@ const std::wstring& FilePanel::getPath() const {
     return path;
 }
 
+void FilePanel::setPath(std::wstring newPath) {
+    if (!canChangeDir(newPath)) {
+        return;
+    }
+    path = std::move(newPath);
+    updateLines();
+    bool wasSelected = hasSelection();
+    lines.setSelectedIdx(0);
+    scrollToSelection();
+    if (!wasSelected) {
+        unselect();
+    }
+}
+
 bool FilePanel::hasSelection() {
     return lines.hasSelection();
 }
@@ -159,6 +179,10 @@ void FilePanel::updateLines() {
     lines.setLines(newLines);
 }
 
+int FilePanel::visibleHeight() const {
+    return rect.h - 2 - BOTTOM;
+}
+
 void FilePanel::scrollToSelection() {
-    lines.scrollToSelection(rect.h - 2 - BOTTOM);
+    lines.scrollToSelection(visibleHeight());
 }

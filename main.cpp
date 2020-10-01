@@ -50,19 +50,7 @@ int main() {
         s.flip();
     };
 
-    // Global exit
-    s.handleKey(VK_F10, 0, [&]() {
-        running = false;
-    });
-
-    // Popup controls
-    diskPopup.registerKeys(s);
-    diskPopup.setOnSelectFunc([&]() {
-        auto& panel = diskPopup.isLeftPopup() ? leftPanel : rightPanel;
-        // TODO: change disk
-    });
-
-    // Panel controls
+    // Bottom panel
     auto getCurrentPanel = [&]() -> FilePanel& {
         return rightPanel.hasSelection() ? rightPanel : leftPanel;
     };
@@ -74,6 +62,25 @@ int main() {
         path += L'>';
         bottom.setLines(styledText({ std::move(path) }, FG::GREY | BG::BLACK));
     };
+
+    // Global exit
+    s.handleKey(VK_F10, 0, [&]() {
+        running = false;
+    });
+
+    // Popup controls
+    diskPopup.registerKeys(s);
+    diskPopup.setOnSelectFunc([&]() {
+        auto& panel = diskPopup.isLeftPopup() ? leftPanel : rightPanel;
+        std::wstring selectedDisk = diskPopup.selectedDisk();
+        if (panel.getPath()[0] == selectedDisk[0]) {
+            return;
+        }
+        panel.setPath(selectedDisk);
+        updateBottom();
+    });
+
+    // Panel controls
     s.handleKey(VK_TAB, 0, [&]() {
         leftPanel.hasSelection() ? leftPanel.unselect() : leftPanel.select();
         rightPanel.hasSelection() ? rightPanel.unselect() : rightPanel.select();
@@ -84,6 +91,12 @@ int main() {
     });
     s.handleKey(VK_DOWN, 0, [&]() {
         getCurrentPanel().selectNext();
+    });
+    s.handleKey(VK_PRIOR, 0, [&]() {
+        getCurrentPanel().selectPageUp();
+    });
+    s.handleKey(VK_NEXT, 0, [&]() {
+        getCurrentPanel().selectPageDown();
     });
     s.handleKey(VK_HOME, 0, [&]() {
         getCurrentPanel().selectFirst();
@@ -98,7 +111,7 @@ int main() {
     });
 
     // Initial state
-    rightPanel.unselect();
+    leftPanel.select();
     updateBottom();
     repaint();
 

@@ -42,9 +42,6 @@ std::wstring Lines::getSelectedText() const {
 
 void Lines::setSelectedIdx(int newIdx) {
     selectedIdx = std::max(-1, std::min(newIdx, (int)lines.size() - 1));
-    if (hasSelection() && selectedIdx < scrollOffset) {
-        scrollOffset = selectedIdx;
-    }
 }
 
 bool Lines::hasSelection() const {
@@ -55,22 +52,19 @@ void Lines::unselect() {
     selectedIdx = -1;
 }
 
-void Lines::selectPrev() {
+void Lines::moveSelection(int delta) {
     if (!hasSelection()) {
         return;
     }
-    if (selectedIdx > 0) {
-        --selectedIdx;
-    }
+    setSelectedIdx(std::max(0, selectedIdx + delta));
+}
+
+void Lines::selectPrev() {
+    moveSelection(-1);
 }
 
 void Lines::selectNext() {
-    if (!hasSelection()) {
-        return;
-    }
-    if (selectedIdx < lines.size() - 1) {
-        ++selectedIdx;
-    }
+    moveSelection(1);
 }
 
 void Lines::selectFirst() {
