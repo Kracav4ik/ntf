@@ -3,6 +3,8 @@
 #include "FilePanel.h"
 #include "colors.h"
 
+static const SHORT BOTTOM = 3;
+
 struct ListDirsResults {
     bool isRoot;
     std::vector<std::wstring> dirs;
@@ -111,8 +113,12 @@ void FilePanel::enter() {
 
 void FilePanel::drawOn(Screen& s) {
     s.paintRect(rect, FG::CYAN | BG::DARK_BLUE);
-    lines.drawOn(s, rect.withPadding(1, 1));
+    Rect linesRect = rect.withPadding(1, 1);
+    linesRect = linesRect.withH(linesRect.h - BOTTOM);
+    lines.drawOn(s, linesRect);
     s.frame(rect);
+    Rect separatorRect = linesRect.moved(0, linesRect.h).withH(1).withPadX(-1);
+    s.separator(separatorRect);
 }
 
 const std::wstring& FilePanel::getPath() const {
@@ -154,5 +160,5 @@ void FilePanel::updateLines() {
 }
 
 void FilePanel::scrollToSelection() {
-    lines.scrollToSelection(rect.h - 2);
+    lines.scrollToSelection(rect.h - 2 - BOTTOM);
 }

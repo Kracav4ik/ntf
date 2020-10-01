@@ -4,6 +4,17 @@
 
 #include "colors.h"
 #include "FilePanel.h"
+#include "DiskPopup.h"
+
+#include <io.h>
+#include <fcntl.h>
+
+void _fixwcout() {
+    constexpr char cp_utf16le[] = ".1200";
+    setlocale( LC_ALL, cp_utf16le );
+    _setmode( _fileno(stdout), _O_WTEXT );
+    std::wcout << L"\r"; // need to output something for this to work
+}
 
 std::wstring getFullPath(const std::wstring& path) {
     DWORD size = GetFullPathNameW(path.c_str(), 0, nullptr, nullptr);
@@ -13,6 +24,8 @@ std::wstring getFullPath(const std::wstring& path) {
 }
 
 int main() {
+    _fixwcout();
+
     Screen s(80, 25);
     s.setTitle(L"Not too far");
     s.setCursorVisible(false);
@@ -22,18 +35,34 @@ int main() {
     bool running = true;
     FilePanel leftPanel({0, 0, 40, 23}, appDir);
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
+    DiskPopup diskPopup(3, 27, 3, 50, 18);
     Lines bottom;
 
+    // Drawing
     auto repaint = [&]() {
         s.clear(FG::GREY | BG::BLACK);
 
         leftPanel.drawOn(s);
         rightPanel.drawOn(s);
         bottom.drawOn(s, {0, 23, 80, 1});
+        diskPopup.drawOn(s);
 
         s.flip();
     };
 
+    // Global exit
+    s.handleKey(VK_F10, 0, [&]() {
+        running = false;
+    });
+
+    // Popup controls
+    diskPopup.registerKeys(s);
+    diskPopup.setOnSelectFunc([&]() {
+        auto& panel = diskPopup.isLeftPopup() ? leftPanel : rightPanel;
+        // TODO: change disk
+    });
+
+    // Panel controls
     auto getCurrentPanel = [&]() -> FilePanel& {
         return rightPanel.hasSelection() ? rightPanel : leftPanel;
     };
@@ -45,10 +74,6 @@ int main() {
         path += L'>';
         bottom.setLines(styledText({ std::move(path) }, FG::GREY | BG::BLACK));
     };
-
-    s.handleKey(VK_F10, 0, [&]() {
-        running = false;
-    });
     s.handleKey(VK_TAB, 0, [&]() {
         leftPanel.hasSelection() ? leftPanel.unselect() : leftPanel.select();
         rightPanel.hasSelection() ? rightPanel.unselect() : rightPanel.select();
@@ -72,9 +97,12 @@ int main() {
         updateBottom();
     });
 
+    // Initial state
     rightPanel.unselect();
     updateBottom();
     repaint();
+
+    // Main loop
     while (running) {
         s.processEvent();
         repaint();

@@ -5,6 +5,28 @@
 
 namespace {
 
+enum {HOR, VERT};
+enum {LT, RT, LB, RB};
+enum {LHOR, RHOR, TVERT, BVERT};
+struct LineStyles {
+    std::wstring lines;
+    std::wstring corners;
+    std::wstring joinToFat;
+    std::wstring joinToSlim;
+};
+const LineStyles FAT = {
+    L"═║",
+    L"╔╗╚╝",
+    L"╠╣╦╩",
+    L"╞╡╥╨"
+};
+const LineStyles SLIM = {
+    L"─│",
+    L"┌┐└┘",
+    L"╟╢╤╧",
+    L"├┤┬┴"
+};
+
 WORD fixAltCtrl(WORD mask) {
     if ((mask & ANY_ALT_PRESSED) != 0) {
         mask |= ANY_ALT_PRESSED;
@@ -41,11 +63,13 @@ void Screen::clear(WORD colorAttr) {
     paintRect({0, 0, width, height}, colorAttr);
 }
 
-void Screen::paintRect(const Rect& rect, WORD colorAttr) {
+void Screen::paintRect(const Rect& rect, WORD colorAttr, bool clearChars) {
     DWORD _unused;
     COORD origin = rect.getLeftTop();
     for (int i = 0; i < rect.h; ++i) {
-        FillConsoleOutputCharacterW(nextConsole, ' ', rect.w, origin, &_unused);
+        if (clearChars) {
+            FillConsoleOutputCharacterW(nextConsole, ' ', rect.w, origin, &_unused);
+        }
         FillConsoleOutputAttribute(nextConsole, colorAttr, rect.w, origin, &_unused);
         ++origin.Y;
     }
@@ -83,10 +107,6 @@ void Screen::boundedLine(COORD pos, SHORT w, const std::wstring& text, bool cent
 }
 
 void Screen::frame(const Rect& rect, bool fat) {
-    static const std::wstring FAT_RECT  = L"═║╔╗╚╝";
-    static const std::wstring SLIM_RECT = L"─│┌┐└┘";
-    enum {HOR, VERT, LT, RT, LB, RB};
-
     SHORT w = rect.w;
     SHORT h = rect.h;
     if (w < 2 || h < 2) {
@@ -96,17 +116,44 @@ void Screen::frame(const Rect& rect, bool fat) {
     COORD rb = {(SHORT)(lt.X + w - 1), (SHORT)(lt.Y + h - 1)};
 
     DWORD _unused;
-    const std::wstring& chars = fat ? FAT_RECT : SLIM_RECT;
-    FillConsoleOutputCharacterW(nextConsole, chars[HOR], w, {lt.X, lt.Y}, &_unused);
-    FillConsoleOutputCharacterW(nextConsole, chars[HOR], w, {lt.X, rb.Y}, &_unused);
+    const std::wstring& lines = fat ? FAT.lines : SLIM.lines;
+    const std::wstring& corners = fat ? FAT.corners : SLIM.corners;
+    FillConsoleOutputCharacterW(nextConsole, lines[HOR], w, {lt.X, lt.Y}, &_unused);
+    FillConsoleOutputCharacterW(nextConsole, lines[HOR], w, {lt.X, rb.Y}, &_unused);
     for (SHORT i = lt.Y + 1; i < rb.Y; ++i) {
-        FillConsoleOutputCharacterW(nextConsole, chars[VERT], 1, {lt.X, i}, &_unused);
-        FillConsoleOutputCharacterW(nextConsole, chars[VERT], 1, {rb.X, i}, &_unused);
+        FillConsoleOutputCharacterW(nextConsole, lines[VERT], 1, {lt.X, i}, &_unused);
+        FillConsoleOutputCharacterW(nextConsole, lines[VERT], 1, {rb.X, i}, &_unused);
     }
-    FillConsoleOutputCharacterW(nextConsole, chars[LT], 1, {lt.X, lt.Y}, &_unused);
-    FillConsoleOutputCharacterW(nextConsole, chars[RT], 1, {rb.X, lt.Y}, &_unused);
-    FillConsoleOutputCharacterW(nextConsole, chars[LB], 1, {lt.X, rb.Y}, &_unused);
-    FillConsoleOutputCharacterW(nextConsole, chars[RB], 1, {rb.X, rb.Y}, &_unused);
+    FillConsoleOutputCharacterW(nextConsole, corners[LT], 1, {lt.X, lt.Y}, &_unused);
+    FillConsoleOutputCharacterW(nextConsole, corners[RT], 1, {rb.X, lt.Y}, &_unused);
+    FillConsoleOutputCharacterW(nextConsole, corners[LB], 1, {lt.X, rb.Y}, &_unused);
+    FillConsoleOutputCharacterW(nextConsole, corners[RB], 1, {rb.X, rb.Y}, &_unused);
+}
+
+void Screen::separator(const Rect& rect, bool fatLine, bool fatEnds) {
+    const auto& style = fatLine ? FAT : SLIM;
+    const std::wstring& lines = style.lines;
+    const std::wstring& joins = fatEnds ? style.joinToFat : style.joinToSlim;
+    bool isHor = rect.h == 1;
+
+    int count = isHor ? rect.w : rect.h;
+    SHORT dx = isHor ? 1 : 0;
+    SHORT dy = isHor ? 0 : 1;
+    COORD pos = rect.getLeftTop();
+    int first = isHor ? LHOR : TVERT;
+    int mid = isHor ? HOR : VERT;
+    int last = isHor ? RHOR : BVERT;
+
+    DWORD _unused;
+    FillConsoleOutputCharacterW(nextConsole, joins[first], 1, {pos.X, pos.Y}, &_unused);
+    pos.X += dx;
+    pos.Y += dy;
+    for (int i = 1; i < count - 1; ++i) {
+        FillConsoleOutputCharacterW(nextConsole, lines[mid], 1, {pos.X, pos.Y}, &_unused);
+        pos.X += dx;
+        pos.Y += dy;
+    }
+    FillConsoleOutputCharacterW(nextConsole, joins[last], 1, {pos.X, pos.Y}, &_unused);
 }
 
 void Screen::flip() {
@@ -137,14 +184,23 @@ void Screen::processEvent() {
         }
         WORD keyState = fixAltCtrl(keyEvent.dwControlKeyState & (ANY_ALT_PRESSED | ANY_CTRL_PRESSED | SHIFT_PRESSED));
         DWORD key = makeKey(keyEvent.wVirtualKeyCode, keyState);
-        auto it = keyHandlers.find(key);
-        if (it != keyHandlers.end()) {
-            it->second();
+        auto range = keyHandlers.equal_range(key);
+        for (auto it = range.first; it != range.second; ++it) {
+            if (it->second() == EventState::Handled) {
+                break;
+            }
         }
     }
 }
 
 void Screen::handleKey(WORD virtualKey, WORD modifiers, std::function<void()> callback) {
+    tryHandleKey(virtualKey, modifiers, [callback = std::move(callback)]() {
+        callback();
+        return EventState::Handled;
+    });
+}
+
+void Screen::tryHandleKey(WORD virtualKey, WORD modifiers, std::function<EventState()> callback) {
     keyHandlers.emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
 }
 
