@@ -5,6 +5,7 @@
 #include "colors.h"
 #include "FilePanel.h"
 #include "DiskPopup.h"
+#include "MessagePopup.h"
 
 #include <io.h>
 #include <fcntl.h>
@@ -46,6 +47,7 @@ int main() {
         rightPanel.drawOn(s);
         bottom.drawOn(s, {0, 23, 80, 1});
         diskPopup.drawOn(s);
+        MessagePopup::drawOn(s);
 
         s.flip();
     };
@@ -67,6 +69,9 @@ int main() {
     s.handleKey(VK_F10, 0, [&]() {
         running = false;
     });
+
+    // Global message popup
+    MessagePopup::registerKeys(s);
 
     // Popup controls
     diskPopup.registerKeys(s);

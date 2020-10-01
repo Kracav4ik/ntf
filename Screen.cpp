@@ -173,6 +173,18 @@ void Screen::setCursorVisible(bool visible) {
     SetConsoleCursorInfo(nextConsole, &info);
 }
 
+SHORT Screen::w() const {
+    return width;
+}
+
+SHORT Screen::h() const {
+    return height;
+}
+
+COORD Screen::center() const {
+    return {(SHORT)(width / 2), (SHORT)(height / 2)};
+}
+
 void Screen::processEvent() {
     INPUT_RECORD event;
     DWORD count;

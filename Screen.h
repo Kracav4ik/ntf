@@ -77,6 +77,10 @@ public:
     void setTitle(const std::wstring& title);
     void setCursorVisible(bool visible);
 
+    SHORT w() const;
+    SHORT h() const;
+    COORD center() const;
+
     void processEvent();
     void handleKey(WORD virtualKey, WORD modifiers, std::function<void()> callback);
     void tryHandleKey(WORD virtualKey, WORD modifiers, std::function<EventState()> callback);

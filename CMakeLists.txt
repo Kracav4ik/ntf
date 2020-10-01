@@ -14,6 +14,8 @@ set(SOURCES
         Lines.cpp
         Lines.h
         main.cpp
+        MessagePopup.cpp
+        MessagePopup.h
         Screen.cpp
         Screen.h
 )

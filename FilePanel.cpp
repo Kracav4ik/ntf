@@ -2,8 +2,7 @@
 
 #include "FilePanel.h"
 #include "colors.h"
-
-#include <iostream>
+#include "MessagePopup.h"
 
 static const SHORT BOTTOM = 3;
 
@@ -101,6 +100,7 @@ void FilePanel::enter() {
             newPath = path + L'\\' + selectedName;
         }
         if (!canChangeDir(newPath)) {
+            MessagePopup::show({L"Cannot change dir to " + newPath});
             return;
         }
         path = std::move(newPath);
