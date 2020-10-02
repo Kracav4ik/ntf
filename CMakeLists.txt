@@ -16,6 +16,7 @@ set(SOURCES
         main.cpp
         MessagePopup.cpp
         MessagePopup.h
+        Popup.h
         Screen.cpp
         Screen.h
 )

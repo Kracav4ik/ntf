@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Lines.h"
+#include "Popup.h"
 
 #include <string>
 #include <vector>
 
 class Screen;
 
-class MessagePopup {
+class MessagePopup : Popup {
 public:
     static void show(std::vector<std::wstring> text);
     static void registerKeys(Screen& screen);
@@ -15,6 +16,7 @@ public:
 
 private:
     MessagePopup() = default;
+    bool isPopupVisible() const override;
     static MessagePopup& get();
 
     Lines lines;

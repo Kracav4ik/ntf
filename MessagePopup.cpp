@@ -17,14 +17,11 @@ void MessagePopup::show(std::vector<std::wstring> text) {
 }
 
 void MessagePopup::registerKeys(Screen& screen) {
-    // TODO: make modal
-    screen.tryHandleKey(VK_RETURN, 0, []() {
+    MessagePopup& popup = get();
+    screen.appendOwner(&popup);
+    screen.handleKey(&popup, VK_RETURN, 0, []() {
         MessagePopup& popup = get();
-        if (!popup.isVisible) {
-            return EventState::Unhandled;
-        }
         popup.isVisible = false;
-        return EventState::Handled;
     });
 }
 
@@ -53,6 +50,10 @@ void MessagePopup::drawOn(Screen& screen) {
 
     screen.paintRect(button, FG::BLACK | BG::GREY);
     screen.textOut({(SHORT)(center.X - 1), button.y}, L"OK");
+}
+
+bool MessagePopup::isPopupVisible() const {
+    return isVisible;
 }
 
 MessagePopup& MessagePopup::get() {

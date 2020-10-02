@@ -187,91 +187,45 @@ std::wstring DiskPopup::selectedDisk() const {
 }
 
 void DiskPopup::registerKeys(Screen& screen) {
-    // TODO: make modal
-    screen.tryHandleKey(VK_F1, ANY_ALT_PRESSED, [this]() {
-        if (isVisible) {
-            return EventState::Unhandled;
-        }
-        show(true);
-        return EventState::Handled;
-    });
-    screen.tryHandleKey(VK_F2, ANY_ALT_PRESSED, [this]() {
-        if (isVisible) {
-            return EventState::Unhandled;
-        }
-        show(false);
-        return EventState::Handled;
-    });
-    screen.tryHandleKey(VK_UP, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.appendOwner(this);
+    screen.handleKey(this, VK_UP, 0, [this]() {
         diskList.selectPrev();
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_DOWN, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_DOWN, 0, [this]() {
         diskList.selectNext();
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_PRIOR, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_PRIOR, 0, [this]() {
         diskList.moveSelection(-diskListRect().h + 1);
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_NEXT, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_NEXT, 0, [this]() {
         diskList.moveSelection(diskListRect().h - 1);
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_HOME, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_HOME, 0, [this]() {
         diskList.selectFirst();
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_END, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_END, 0, [this]() {
         diskList.selectLast();
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_ESCAPE, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_ESCAPE, 0, [this]() {
         hide();
-        return EventState::Handled;
     });
-    screen.tryHandleKey(VK_RETURN, 0, [this]() {
-        if (!isVisible) {
-            return EventState::Unhandled;
-        }
+    screen.handleKey(this, VK_RETURN, 0, [this]() {
         if (selectDisk) {
             selectDisk();
             hide();
         }
-        return EventState::Handled;
     });
 }
 
@@ -294,6 +248,10 @@ void DiskPopup::drawOn(Screen& screen) {
     diskList.drawOn(screen, diskListRect());
     screen.separator(diskInfoRect().moved(0, -1).withPadX(-1).withH(1));
     diskInfo.drawOn(screen, diskInfoRect());
+}
+
+bool DiskPopup::isPopupVisible() const {
+    return isVisible;
 }
 
 Rect DiskPopup::popupRect() const {

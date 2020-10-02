@@ -66,7 +66,7 @@ int main() {
     };
 
     // Global exit
-    s.handleKey(VK_F10, 0, [&]() {
+    s.handlePriorityKey(VK_F10, 0, [&]() {
         running = false;
     });
 
@@ -83,6 +83,12 @@ int main() {
         }
         panel.setPath(selectedDisk);
         updateBottom();
+    });
+    s.handleKey(VK_F1, ANY_ALT_PRESSED, [&]() {
+        diskPopup.show(true);
+    });
+    s.handleKey(VK_F2, ANY_ALT_PRESSED, [&]() {
+        diskPopup.show(false);
     });
 
     // Panel controls

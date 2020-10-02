@@ -1,5 +1,7 @@
 #include "Screen.h"
 
+#include "Popup.h"
+
 #include <memory>
 #include <cwchar>
 
@@ -196,24 +198,44 @@ void Screen::processEvent() {
         }
         WORD keyState = fixAltCtrl(keyEvent.dwControlKeyState & (ANY_ALT_PRESSED | ANY_CTRL_PRESSED | SHIFT_PRESSED));
         DWORD key = makeKey(keyEvent.wVirtualKeyCode, keyState);
-        auto range = keyHandlers.equal_range(key);
-        for (auto it = range.first; it != range.second; ++it) {
-            if (it->second() == EventState::Handled) {
-                break;
+        auto globalIt = priorityHandlers.find(key);
+        if (globalIt != priorityHandlers.end()) {
+            globalIt->second();
+            return;
+        }
+        for (Popup* owner : ownersOrder) {
+            if (!owner->isPopupVisible()) {
+                continue;
             }
+            auto& handlers = handlersByPopup[owner];
+            auto it = handlers.find(key);
+            if (it != handlers.end()) {
+                it->second();
+            }
+            return;
+        }
+        globalIt = globalHandlers.find(key);
+        if (globalIt != globalHandlers.end()) {
+            globalIt->second();
+            return;
         }
     }
 }
 
-void Screen::handleKey(WORD virtualKey, WORD modifiers, std::function<void()> callback) {
-    tryHandleKey(virtualKey, modifiers, [callback = std::move(callback)]() {
-        callback();
-        return EventState::Handled;
-    });
+void Screen::appendOwner(Popup* owner) {
+    ownersOrder.push_back(owner);
 }
 
-void Screen::tryHandleKey(WORD virtualKey, WORD modifiers, std::function<EventState()> callback) {
-    keyHandlers.emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
+void Screen::handlePriorityKey(WORD virtualKey, WORD modifiers, std::function<void()> callback) {
+    priorityHandlers.emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
+}
+
+void Screen::handleKey(WORD virtualKey, WORD modifiers, std::function<void()> callback) {
+    globalHandlers.emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
+}
+
+void Screen::handleKey(Popup* owner, WORD virtualKey, WORD modifiers, std::function<void()> callback) {
+    handlersByPopup[owner].emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
 }
 
 HANDLE Screen::createBuffer(SHORT width, SHORT height) {

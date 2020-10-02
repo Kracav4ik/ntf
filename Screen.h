@@ -55,10 +55,7 @@ struct Rect {
     }
 };
 
-enum class EventState {
-    Handled,
-    Unhandled
-};
+class Popup;
 
 class Screen {
 public:
@@ -82,8 +79,10 @@ public:
     COORD center() const;
 
     void processEvent();
+    void appendOwner(Popup* owner);
+    void handlePriorityKey(WORD virtualKey, WORD modifiers, std::function<void()> callback);
     void handleKey(WORD virtualKey, WORD modifiers, std::function<void()> callback);
-    void tryHandleKey(WORD virtualKey, WORD modifiers, std::function<EventState()> callback);
+    void handleKey(Popup* owner, WORD virtualKey, WORD modifiers, std::function<void()> callback);
 
 private:
     static HANDLE createBuffer(SHORT width, SHORT height);
@@ -95,5 +94,8 @@ private:
     HANDLE currConsole;
     HANDLE nextConsole;
 
-    std::multimap<DWORD, std::function<EventState()>> keyHandlers;
+    std::vector<Popup*> ownersOrder;
+    std::map<DWORD, std::function<void()>> priorityHandlers;
+    std::map<Popup*, std::map<DWORD, std::function<void()>>> handlersByPopup;
+    std::map<DWORD, std::function<void()>> globalHandlers;
 };
