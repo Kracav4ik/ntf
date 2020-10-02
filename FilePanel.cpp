@@ -59,6 +59,13 @@ FilePanel::FilePanel(Rect rect, std::wstring initialPath): rect(rect) {
     setPath(std::move(initialPath));
 }
 
+std::wstring FilePanel::getSelectedText() const {
+    if (!hasSelection()) {
+        return L"";
+    }
+    return lines.getSelectedText();
+}
+
 void FilePanel::selectPrev() {
     lines.selectPrev();
     scrollToSelection();
@@ -145,7 +152,7 @@ void FilePanel::setPath(std::wstring newPath) {
     }
 }
 
-bool FilePanel::hasSelection() {
+bool FilePanel::hasSelection() const {
     return lines.hasSelection();
 }
 

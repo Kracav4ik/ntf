@@ -6,6 +6,7 @@
 MakeDirPopup::MakeDirPopup(SHORT w, SHORT h)
     : w(w), h(h)
 {
+    newName.setText(L"Новая папка");
 }
 
 void MakeDirPopup::show(const std::wstring& root) {
@@ -37,6 +38,7 @@ void MakeDirPopup::drawOn(Screen& screen) {
 
     Rect inner = frameRect.withPadding(2, 2);
     screen.textOut(inner.getLeftTop(), L"Создать папку:");
+    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), inner.w, FG::BLACK | BG::DARK_CYAN);
 
     Rect sep = frameRect.moved(0, frameRect.h - 3).withH(1);
     screen.separator(sep);

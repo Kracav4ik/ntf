@@ -7,6 +7,7 @@ class FilePanel {
 public:
     FilePanel(Rect rect, std::wstring initialPath);
 
+    std::wstring getSelectedText() const;
     void selectPrev();
     void selectNext();
     void selectPageUp();
@@ -20,7 +21,7 @@ public:
     const std::wstring& getPath() const;
     void setPath(std::wstring newPath);
 
-    bool hasSelection();
+    bool hasSelection() const;
     void select();
     void unselect();
 

@@ -15,6 +15,8 @@ set(SOURCES
         DiskPopup.h
         FilePanel.cpp
         FilePanel.h
+        LineEdit.cpp
+        LineEdit.h
         Lines.cpp
         Lines.h
         main.cpp

@@ -2,6 +2,7 @@
 
 #include "Lines.h"
 #include "Popup.h"
+#include "LineEdit.h"
 
 class Screen;
 
@@ -17,4 +18,5 @@ private:
     SHORT w;
     SHORT h;
     std::wstring dirRoot;
+    LineEdit newName;
 };

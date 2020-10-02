@@ -8,9 +8,13 @@ CopyMovePopup::CopyMovePopup(SHORT w, SHORT h)
 {
 }
 
-void CopyMovePopup::show(bool isCopy) {
+void CopyMovePopup::show(bool isCopy, const std::wstring& fromRoot, const std::wstring& fromName, const std::wstring& toRoot) {
     isVisible = true;
     showCopy = isCopy;
+    oldName = fromName;
+    oldRoot = fromRoot;
+    newName.setText(fromName);
+    newRoot = toRoot;
 }
 
 void CopyMovePopup::registerKeys(Screen& screen) {
@@ -36,8 +40,9 @@ void CopyMovePopup::drawOn(Screen& screen) {
     screen.frame(frameRect);
 
     Rect inner = frameRect.withPadding(2, 2);
-    std::wstring action = showCopy ? L"Копировать" : L"Переместить";
-    screen.textOut(inner.getLeftTop(), action + L" в:");
+    std::wstring action = showCopy ? L"Копировать " : L"Переместить ";
+    screen.textOut(inner.getLeftTop(), action + oldName + L" в:");
+    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), inner.w, FG::BLACK | BG::DARK_CYAN);
 
     Rect sep = frameRect.moved(0, frameRect.h - 3).withH(1);
     screen.separator(sep);

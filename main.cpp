@@ -78,6 +78,9 @@ int main() {
     auto getCurrentPanel = [&]() -> FilePanel& {
         return rightPanel.hasSelection() ? rightPanel : leftPanel;
     };
+    auto getOtherPanel = [&]() -> FilePanel& {
+        return rightPanel.hasSelection() ? leftPanel : rightPanel;
+    };
     auto updateBottom = [&]() {
         std::wstring path = getCurrentPanel().getPath();
         if (path[path.size() - 1] == L':') {
@@ -122,10 +125,20 @@ int main() {
         attrChangePopup.show();
     });
     s.handleKey(VK_F5, 0, [&]() {
-        copyMovePopup.show(true);
+        auto& current = getCurrentPanel();
+        auto& other = getOtherPanel();
+        auto name = current.getSelectedText();
+        if (name != L"..") {
+            copyMovePopup.show(true, current.getPath(), name, other.getPath());
+        }
     });
     s.handleKey(VK_F6, 0, [&]() {
-        copyMovePopup.show(false);
+        auto& current = getCurrentPanel();
+        auto& other = getOtherPanel();
+        auto name = current.getSelectedText();
+        if (name != L"..") {
+            copyMovePopup.show(false, current.getPath(), name, other.getPath());
+        }
     });
     s.handleKey(VK_F7, 0, [&]() {
         makeDirPopup.show(L"...");
