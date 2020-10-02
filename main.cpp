@@ -56,11 +56,12 @@ int main() {
         bottom.drawOn(s, {0, 23, 80, 1});
         s.labelsFill({0, (SHORT)(s.h() - 1), s.w(), 1}, {
             L"Alt-F1/F2 Диск",
+            L"F2 Новый",
             L"F4 Атр.",
             L"F5 Копир.",
             L"F6 Перен.",
             L"F7 Папка",
-            L"F8 Удален.",
+            L"F8 Удал.",
             L"F10 Выход",
         }, FG::BLACK | BG::DARK_CYAN);
 
@@ -126,6 +127,14 @@ int main() {
     });
     removeDirPopup.setOnUpdateDirs([&](){
         getCurrentPanel().updateLines();
+    });
+
+    s.handleKey(VK_F2, 0, [&]() {
+        MessagePopup::show({
+            L"Создание файлов еще не работает.",
+            L"В полной версии оно заработает, но пока нет.",
+            L"Увы.",
+        });
     });
 
     s.handleKey(VK_F4, 0, [&]() {
