@@ -56,7 +56,7 @@ int main() {
         bottom.drawOn(s, {0, 23, 80, 1});
         s.labelsFill({0, (SHORT)(s.h() - 1), s.w(), 1}, {
             L"Alt-F1/F2 Диск",
-            L"F4 Аттр.",
+            L"F4 Атр.",
             L"F5 Копир.",
             L"F6 Перен.",
             L"F7 Папка",
@@ -121,8 +121,19 @@ int main() {
         diskPopup.show(false);
     });
 
+    makeDirPopup.setOnUpdateDirs([&](){
+        getCurrentPanel().updateLines();
+    });
+    removeDirPopup.setOnUpdateDirs([&](){
+        getCurrentPanel().updateLines();
+    });
+
     s.handleKey(VK_F4, 0, [&]() {
-        attrChangePopup.show();
+        auto& current = getCurrentPanel();
+        auto name = current.getSelectedText();
+        if (name != L"..") {
+            attrChangePopup.show(current.getPath(), name);
+        }
     });
     s.handleKey(VK_F5, 0, [&]() {
         auto& current = getCurrentPanel();
@@ -141,9 +152,6 @@ int main() {
         }
     });
     s.handleKey(VK_F7, 0, [&]() {
-        makeDirPopup.setOnUpdateDirs([&](){
-            getCurrentPanel().updateLines();
-        });
         makeDirPopup.show(getCurrentPanel().getPath());
     });
     s.handleKey(VK_F8, 0, [&]() {
@@ -151,9 +159,6 @@ int main() {
         auto& other = getOtherPanel();
         auto name = current.getSelectedText();
         if (name != L"..") {
-            removeDirPopup.setOnUpdateDirs([&](){
-                getCurrentPanel().updateLines();
-            });
             removeDirPopup.show(current.getPath(), name);
         }
     });
