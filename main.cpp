@@ -141,10 +141,21 @@ int main() {
         }
     });
     s.handleKey(VK_F7, 0, [&]() {
-        makeDirPopup.show(L"...");
+        makeDirPopup.setOnUpdateDirs([&](){
+            getCurrentPanel().updateLines();
+        });
+        makeDirPopup.show(getCurrentPanel().getPath());
     });
     s.handleKey(VK_F8, 0, [&]() {
-        removeDirPopup.show(L"...");
+        auto& current = getCurrentPanel();
+        auto& other = getOtherPanel();
+        auto name = current.getSelectedText();
+        if (name != L"..") {
+            removeDirPopup.setOnUpdateDirs([&](){
+                getCurrentPanel().updateLines();
+            });
+            removeDirPopup.show(current.getPath(), name);
+        }
     });
 
     // Panel controls

@@ -24,9 +24,9 @@ public:
     bool hasSelection() const;
     void select();
     void unselect();
+    void updateLines();
 
 private:
-    void updateLines();
     int visibleHeight() const;
     void scrollToSelection();
 

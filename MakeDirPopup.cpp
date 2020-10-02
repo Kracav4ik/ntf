@@ -2,11 +2,16 @@
 
 #include "Screen.h"
 #include "colors.h"
+#include "MessagePopup.h"
 
 MakeDirPopup::MakeDirPopup(SHORT w, SHORT h)
     : w(w), h(h)
 {
     newName.setText(L"Новая папка");
+}
+
+void MakeDirPopup::setOnUpdateDirs(std::function<void()> func) {
+    updateDirs = std::move(func);
 }
 
 void MakeDirPopup::show(const std::wstring& root) {
@@ -19,6 +24,27 @@ void MakeDirPopup::registerKeys(Screen& screen) {
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         // TODO make dir here
+        std::wstring name = newName.getText();
+        if (name.empty()) {
+            return;
+        }
+        std::wstring path = dirRoot + L"\\" + name;
+
+        if(CreateDirectoryW(path.c_str(), nullptr) == 0) {
+            DWORD lastError = GetLastError();
+            switch(lastError) {
+                case ERROR_ALREADY_EXISTS:
+                    MessagePopup::show({L"Папка уже существует"});
+                    return;
+                case ERROR_PATH_NOT_FOUND:
+                    MessagePopup::show({L"Путь не найден"});
+                    return;
+                default:
+                    MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
+                    return;
+            }
+        }
+        updateDirs();
         isVisible = false;
     });
 }
