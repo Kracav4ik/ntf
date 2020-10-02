@@ -23,13 +23,12 @@ public:
     void drawOn(Screen& screen);
 
 private:
-    bool isPopupVisible() const override;
     Rect popupRect() const;
     Rect frameRect() const;
     Rect innerRect() const;
     Rect diskListRect() const;
     Rect diskInfoRect() const;
-    void hide();
+
     void fillDrivesList();
     void updateDiskInfo();
 
@@ -41,6 +40,5 @@ private:
     Lines diskList;
     Lines diskInfo;
     bool isLeft = false;
-    bool isVisible = false;
     std::function<void()> selectDisk;
 };

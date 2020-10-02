@@ -188,6 +188,7 @@ std::wstring DiskPopup::selectedDisk() const {
 
 void DiskPopup::registerKeys(Screen& screen) {
     screen.appendOwner(this);
+    registerClosing(screen);
     screen.handleKey(this, VK_UP, 0, [this]() {
         diskList.selectPrev();
         diskList.scrollToSelection(diskListRect().h);
@@ -218,13 +219,10 @@ void DiskPopup::registerKeys(Screen& screen) {
         diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
     });
-    screen.handleKey(this, VK_ESCAPE, 0, [this]() {
-        hide();
-    });
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         if (selectDisk) {
             selectDisk();
-            hide();
+            isVisible = false;
         }
     });
 }
@@ -248,10 +246,6 @@ void DiskPopup::drawOn(Screen& screen) {
     diskList.drawOn(screen, diskListRect());
     screen.separator(diskInfoRect().moved(0, -1).withPadX(-1).withH(1));
     diskInfo.drawOn(screen, diskInfoRect());
-}
-
-bool DiskPopup::isPopupVisible() const {
-    return isVisible;
 }
 
 Rect DiskPopup::popupRect() const {
@@ -282,8 +276,4 @@ void DiskPopup::show(bool left) {
     updateDiskInfo();
     isLeft = left;
     isVisible = true;
-}
-
-void DiskPopup::hide() {
-    isVisible = false;
 }

@@ -6,6 +6,10 @@
 #include "FilePanel.h"
 #include "DiskPopup.h"
 #include "MessagePopup.h"
+#include "AttrChangePopup.h"
+#include "CopyMovePopup.h"
+#include "MakeDirPopup.h"
+#include "RemoveDirPopup.h"
 
 #include <io.h>
 #include <fcntl.h>
@@ -37,6 +41,10 @@ int main() {
     FilePanel leftPanel({0, 0, 40, 23}, appDir);
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
     DiskPopup diskPopup(3, 27, 3, 50, 18);
+    AttrChangePopup attrChangePopup(50, 16);
+    CopyMovePopup copyMovePopup(70, 10);
+    MakeDirPopup makeDirPopup(70, 10);
+    RemoveDirPopup removeDirPopup(70, 10);
     Lines bottom;
 
     // Drawing
@@ -46,7 +54,21 @@ int main() {
         leftPanel.drawOn(s);
         rightPanel.drawOn(s);
         bottom.drawOn(s, {0, 23, 80, 1});
+        s.labelsFill({0, (SHORT)(s.h() - 1), s.w(), 1}, {
+            L"Alt-F1/F2 Диск",
+            L"F4 Аттр.",
+            L"F5 Копир.",
+            L"F6 Перен.",
+            L"F7 Папка",
+            L"F8 Удален.",
+            L"F10 Выход",
+        }, FG::BLACK | BG::DARK_CYAN);
+
         diskPopup.drawOn(s);
+        attrChangePopup.drawOn(s);
+        copyMovePopup.drawOn(s);
+        makeDirPopup.drawOn(s);
+        removeDirPopup.drawOn(s);
         MessagePopup::drawOn(s);
 
         s.flip();
@@ -75,6 +97,11 @@ int main() {
 
     // Popup controls
     diskPopup.registerKeys(s);
+    attrChangePopup.registerKeys(s);
+    copyMovePopup.registerKeys(s);
+    makeDirPopup.registerKeys(s);
+    removeDirPopup.registerKeys(s);
+
     diskPopup.setOnSelectFunc([&]() {
         auto& panel = diskPopup.isLeftPopup() ? leftPanel : rightPanel;
         std::wstring selectedDisk = diskPopup.selectedDisk();
@@ -89,6 +116,22 @@ int main() {
     });
     s.handleKey(VK_F2, ANY_ALT_PRESSED, [&]() {
         diskPopup.show(false);
+    });
+
+    s.handleKey(VK_F4, 0, [&]() {
+        attrChangePopup.show();
+    });
+    s.handleKey(VK_F5, 0, [&]() {
+        copyMovePopup.show(true);
+    });
+    s.handleKey(VK_F6, 0, [&]() {
+        copyMovePopup.show(false);
+    });
+    s.handleKey(VK_F7, 0, [&]() {
+        makeDirPopup.show(L"...");
+    });
+    s.handleKey(VK_F8, 0, [&]() {
+        removeDirPopup.show(L"...");
     });
 
     // Panel controls
@@ -119,6 +162,10 @@ int main() {
     s.handleKey(VK_RETURN, 0, [&]() {
         getCurrentPanel().enter();
         updateBottom();
+    });
+
+    s.handleKey(VK_SPACE, 0, [&]() {
+        MessagePopup::show({L"Ш     Т     О     Ш"});
     });
 
     // Initial state

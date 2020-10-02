@@ -16,11 +16,9 @@ public:
 
 private:
     MessagePopup() = default;
-    bool isPopupVisible() const override;
     static MessagePopup& get();
 
     Lines lines;
-    bool isVisible = false;
     int maxWidth = 0;
     int linesCount = 0;
 };

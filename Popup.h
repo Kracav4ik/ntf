@@ -1,6 +1,13 @@
 #pragma once
 
+class Screen;
+
 class Popup {
 public:
-    virtual bool isPopupVisible() const = 0;
+    bool isPopupVisible() const;
+
+protected:
+    void registerClosing(Screen& screen);
+
+    bool isVisible = false;
 };

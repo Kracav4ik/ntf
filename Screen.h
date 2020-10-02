@@ -69,6 +69,8 @@ public:
     void boundedLine(COORD pos, SHORT w, const std::wstring& text, bool centered = false);
     void frame(const Rect& rect, bool fat = true);
     void separator(const Rect& rect, bool fatLine = false, bool fatEnds = true);
+    void labelsFill(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr);
+    void labels(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator = 2);
     void flip();
 
     void setTitle(const std::wstring& title);

@@ -19,6 +19,7 @@ void MessagePopup::show(std::vector<std::wstring> text) {
 void MessagePopup::registerKeys(Screen& screen) {
     MessagePopup& popup = get();
     screen.appendOwner(&popup);
+    popup.registerClosing(screen);
     screen.handleKey(&popup, VK_RETURN, 0, []() {
         MessagePopup& popup = get();
         popup.isVisible = false;
@@ -35,25 +36,20 @@ void MessagePopup::drawOn(Screen& screen) {
     auto center = screen.center();
 
     Rect inner{center.X, center.Y, w, h};
-    Rect button = inner.moved(-OK_WIDTH/2, h - h/2 - 1).withW(OK_WIDTH).withH(1);
+    Rect button = inner.moved(-w/2, h - h/2 - 1).withH(1);
     inner = inner.moved(-w/2, -h/2);
     Rect frame = inner.withPadding(-2, -1);
     Rect outer = frame.withPadding(-2, -1);
     Rect shadow(outer.moved(2, 1));
 
     screen.paintRect(shadow, FG::DARK_GREY | BG::BLACK, false);
-    screen.paintRect(outer, FG::GREY | BG::DARK_RED);
+    screen.paintRect(outer, FG::WHITE | BG::DARK_RED);
     screen.frame(frame);
 
     popup.lines.drawOn(screen, inner.withH(inner.h - 2), true);
     screen.separator(inner.moved(0, inner.h - 2).withPadX(-2).withH(1));
 
-    screen.paintRect(button, FG::BLACK | BG::GREY);
-    screen.textOut({(SHORT)(center.X - 1), button.y}, L"OK");
-}
-
-bool MessagePopup::isPopupVisible() const {
-    return isVisible;
+    screen.labels(button, {L"OK"}, FG::BLACK | BG::GREY);
 }
 
 MessagePopup& MessagePopup::get() {

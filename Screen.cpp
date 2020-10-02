@@ -158,6 +158,37 @@ void Screen::separator(const Rect& rect, bool fatLine, bool fatEnds) {
     FillConsoleOutputCharacterW(nextConsole, joins[last], 1, {pos.X, pos.Y}, &_unused);
 }
 
+void Screen::labelsFill(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr) {
+    labels(rect, labelsList, colorAttr, -1);
+}
+
+void Screen::labels(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator) {
+    int labelsWidthSum = 0;
+    for (const auto& label : labelsList) {
+        labelsWidthSum += label.size();
+    }
+    SHORT y = rect.y;
+    SHORT x = rect.x;
+    int separatorsSum;
+    if (separator == -1) {
+        separatorsSum = std::max((int)labelsList.size() - 1, rect.w - labelsWidthSum);
+    } else {
+        separatorsSum = separator * (labelsList.size() - 1);
+        x += (rect.w - separatorsSum - labelsWidthSum)/2;
+    }
+    int curLabelsWidth = 0;
+    for (int i = 0; i < labelsList.size(); ++i) {
+        SHORT labelX = x;
+        if (i > 0) {
+            labelX += curLabelsWidth + i*separatorsSum/(labelsList.size() - 1);
+        }
+        const auto& label = labelsList[i];
+        paintRect({labelX, y, (SHORT)label.size(), 1}, colorAttr, false);
+        textOut({labelX, y}, label);
+        curLabelsWidth += label.size();
+    }
+}
+
 void Screen::flip() {
     std::swap(currConsole, nextConsole);
     SetConsoleActiveScreenBuffer(currConsole);
