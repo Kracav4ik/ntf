@@ -41,6 +41,9 @@ void MakeDirPopup::registerKeys(Screen& screen) {
                 case ERROR_PATH_NOT_FOUND:
                     MessagePopup::show({L"Путь не найден"});
                     return;
+                case ERROR_INVALID_NAME:
+                    MessagePopup::show({L"Неверное имя папки"});
+                    return;
                 default:
                     MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
                     return;
