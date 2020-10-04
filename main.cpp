@@ -10,6 +10,7 @@
 #include "CopyMovePopup.h"
 #include "MakeDirPopup.h"
 #include "RemoveDirPopup.h"
+#include "MakeFilePopup.h"
 
 #include <io.h>
 #include <fcntl.h>
@@ -43,6 +44,7 @@ int main() {
     AttrChangePopup attrChangePopup(50, 16);
     CopyMovePopup copyMovePopup(s, 70, 10);
     MakeDirPopup makeDirPopup(s, 70, 10);
+    MakeFilePopup makeFilePopup(s, 70, 10);
     RemoveDirPopup removeDirPopup(70, 10);
     Lines bottom;
 
@@ -68,6 +70,7 @@ int main() {
         attrChangePopup.drawOn(s);
         copyMovePopup.drawOn(s);
         makeDirPopup.drawOn(s);
+        makeFilePopup.drawOn(s);
         removeDirPopup.drawOn(s);
         MessagePopup::drawOn(s);
 
@@ -103,6 +106,7 @@ int main() {
     attrChangePopup.registerKeys(s);
     copyMovePopup.registerKeys(s);
     makeDirPopup.registerKeys(s);
+    makeFilePopup.registerKeys(s);
     removeDirPopup.registerKeys(s);
 
     diskPopup.setOnSelectFunc([&]() {
@@ -124,16 +128,15 @@ int main() {
     makeDirPopup.setOnUpdateDirs([&](){
         getCurrentPanel().updateLines();
     });
+    makeFilePopup.setOnUpdateDirs([&](){
+        getCurrentPanel().updateLines();
+    });
     removeDirPopup.setOnUpdateDirs([&](){
         getCurrentPanel().updateLines();
     });
 
     s.handleKey(VK_F2, 0, [&]() {
-        MessagePopup::show({
-            L"Создание файлов еще не работает.",
-            L"В полной версии оно заработает, но пока нет.",
-            L"Увы.",
-        });
+        makeFilePopup.show(getCurrentPanel().getPath());
     });
 
     s.handleKey(VK_F4, 0, [&]() {

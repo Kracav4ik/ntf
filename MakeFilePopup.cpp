@@ -1,27 +1,27 @@
-#include "MakeDirPopup.h"
+#include "MakeFilePopup.h"
 
 #include "Screen.h"
 #include "colors.h"
 #include "MessagePopup.h"
 
-MakeDirPopup::MakeDirPopup(Screen& screen, SHORT w, SHORT h)
+MakeFilePopup::MakeFilePopup(Screen& screen, SHORT w, SHORT h)\
     : w(w)
     , h(h)
     , newName(screen, this, w - 8)
 {
 }
 
-void MakeDirPopup::setOnUpdateDirs(std::function<void()> func) {
+void MakeFilePopup::setOnUpdateDirs(std::function<void()> func) {
     updateDirs = std::move(func);
 }
 
-void MakeDirPopup::show(const std::wstring& root) {
+void MakeFilePopup::show(const std::wstring& root) {
     visible = true;
     dirRoot = root;
-    newName.setText(L"Новая папка");
+    newName.setText(L"Новый файл");
 }
 
-void MakeDirPopup::registerKeys(Screen& screen) {
+void MakeFilePopup::registerKeys(Screen& screen) {
     screen.appendOwner(this);
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
@@ -31,17 +31,17 @@ void MakeDirPopup::registerKeys(Screen& screen) {
         }
         std::wstring path = dirRoot + L"\\" + name;
 
-        if(CreateDirectoryW(path.c_str(), nullptr) == 0) {
+        if(CreateFileW(path.c_str(), 0, 0, nullptr, CREATE_NEW, 0, nullptr) == INVALID_HANDLE_VALUE) {
             DWORD lastError = GetLastError();
             switch(lastError) {
-                case ERROR_ALREADY_EXISTS:
-                    MessagePopup::show({L"Папка уже существует"});
+                case ERROR_FILE_EXISTS:
+                    MessagePopup::show({L"Файл уже существует"});
                     return;
-                case ERROR_PATH_NOT_FOUND:
-                    MessagePopup::show({L"Путь не найден"});
+                case ERROR_ACCESS_DENIED:
+                    MessagePopup::show({L"Ошибка доступа"});
                     return;
                 case ERROR_INVALID_NAME:
-                    MessagePopup::show({L"Неверное имя папки"});
+                    MessagePopup::show({L"Неверное имя файла"});
                     return;
                 default:
                     MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
@@ -51,9 +51,10 @@ void MakeDirPopup::registerKeys(Screen& screen) {
         updateDirs();
         visible = false;
     });
+
 }
 
-void MakeDirPopup::drawOn(Screen& screen) {
+void MakeFilePopup::drawOn(Screen& screen) {
     if (!visible) {
         return;
     }
@@ -67,7 +68,7 @@ void MakeDirPopup::drawOn(Screen& screen) {
     screen.frame(frameRect);
 
     Rect inner = frameRect.withPadding(2, 2);
-    screen.textOut(inner.getLeftTop(), L"Создать папку:");
+    screen.textOut(inner.getLeftTop(), L"Создать файл:");
     newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), FG::BLACK | BG::DARK_CYAN);
 
     Rect sep = frameRect.moved(0, frameRect.h - 3).withH(1);

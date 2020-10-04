@@ -32,6 +32,8 @@ set(SOURCES
         RemoveDirPopup.h
         Screen.cpp
         Screen.h
+        MakeFilePopup.cpp
+        MakeFilePopup.h
 )
 
 add_executable(ntf ${SOURCES})

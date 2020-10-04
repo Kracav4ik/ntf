@@ -5,9 +5,9 @@
 #include "Popup.h"
 #include "LineEdit.h"
 
-class MakeDirPopup : Popup {
+class MakeFilePopup : Popup {
 public:
-    MakeDirPopup(Screen& screen, SHORT w, SHORT h);
+    MakeFilePopup(Screen& screen, SHORT w, SHORT h);
 
     void setOnUpdateDirs(std::function<void()> func);
 
@@ -21,4 +21,5 @@ private:
     std::wstring dirRoot;
     LineEdit newName;
     std::function<void()> updateDirs;
+
 };
