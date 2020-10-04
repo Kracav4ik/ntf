@@ -6,15 +6,20 @@
 
 class Screen;
 class Popup;
+class EditableText;
 
 class LineEdit {
 public:
-    void setText(const std::wstring& newText);
-    std::wstring getText() const;
+    LineEdit(Screen& screen, Popup* owner, SHORT w);
 
-    void registerKeys(Screen& screen, Popup* owner);
-    void drawOn(Screen& screen, COORD pos, SHORT w, WORD colorAttr);
+    void setText(std::wstring newText);
+    std::wstring getText() const;
+    void setReadOnly(bool newReadOnly);
+
+    void drawOn(Screen& screen, COORD pos, WORD colorAttr);
 
 private:
-    std::wstring text;
+    EditableText& editable;
+    Popup* owner;
+    SHORT w;
 };

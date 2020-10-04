@@ -4,10 +4,11 @@
 #include "colors.h"
 #include "MessagePopup.h"
 
-MakeDirPopup::MakeDirPopup(SHORT w, SHORT h)
-    : w(w), h(h)
+MakeDirPopup::MakeDirPopup(Screen& screen, SHORT w, SHORT h)
+    : w(w)
+    , h(h)
+    , newName(screen, this, w - 8)
 {
-    newName.setText(L"Новая папка");
 }
 
 void MakeDirPopup::setOnUpdateDirs(std::function<void()> func) {
@@ -15,8 +16,9 @@ void MakeDirPopup::setOnUpdateDirs(std::function<void()> func) {
 }
 
 void MakeDirPopup::show(const std::wstring& root) {
-    isVisible = true;
+    visible = true;
     dirRoot = root;
+    newName.setText(L"Новая папка");
 }
 
 void MakeDirPopup::registerKeys(Screen& screen) {
@@ -45,12 +47,12 @@ void MakeDirPopup::registerKeys(Screen& screen) {
             }
         }
         updateDirs();
-        isVisible = false;
+        visible = false;
     });
 }
 
 void MakeDirPopup::drawOn(Screen& screen) {
-    if (!isVisible) {
+    if (!visible) {
         return;
     }
     auto center = screen.center();
@@ -64,7 +66,7 @@ void MakeDirPopup::drawOn(Screen& screen) {
 
     Rect inner = frameRect.withPadding(2, 2);
     screen.textOut(inner.getLeftTop(), L"Создать папку:");
-    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), inner.w, FG::BLACK | BG::DARK_CYAN);
+    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), FG::BLACK | BG::DARK_CYAN);
 
     Rect sep = frameRect.moved(0, frameRect.h - 3).withH(1);
     screen.separator(sep);

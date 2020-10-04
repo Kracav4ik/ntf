@@ -16,7 +16,7 @@ void RemoveDirPopup::setOnUpdateDirs(std::function<void()> func) {
 }
 
 void RemoveDirPopup::show(const std::wstring& dir, const std::wstring& name) {
-    isVisible = true;
+    visible = true;
     toDelete = dir + L"\\" + name;
     // TODO delete file?
     text.setLines(styledText({L"Действительно удалить папку?", toDelete}, FG::WHITE | BG::DARK_RED));
@@ -44,12 +44,12 @@ void RemoveDirPopup::registerKeys(Screen& screen) {
             }
         }
         updateDirs();
-        isVisible = false;
+        visible = false;
     });
 }
 
 void RemoveDirPopup::drawOn(Screen& screen) {
-    if (!isVisible) {
+    if (!visible) {
         return;
     }
     auto center = screen.center();

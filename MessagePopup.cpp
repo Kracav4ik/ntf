@@ -13,7 +13,7 @@ void MessagePopup::show(std::vector<std::wstring> text) {
     }
     popup.linesCount = text.size();
     popup.lines.setLines(styledText(std::move(text), FG::WHITE | BG::DARK_RED));
-    popup.isVisible = true;
+    popup.visible = true;
 }
 
 void MessagePopup::registerKeys(Screen& screen) {
@@ -22,13 +22,13 @@ void MessagePopup::registerKeys(Screen& screen) {
     popup.registerClosing(screen);
     screen.handleKey(&popup, VK_RETURN, 0, []() {
         MessagePopup& popup = get();
-        popup.isVisible = false;
+        popup.visible = false;
     });
 }
 
 void MessagePopup::drawOn(Screen& screen) {
     MessagePopup& popup = get();
-    if (!popup.isVisible) {
+    if (!popup.visible) {
         return;
     }
     SHORT w = std::max(OK_WIDTH, (SHORT) popup.maxWidth);
@@ -49,7 +49,11 @@ void MessagePopup::drawOn(Screen& screen) {
     popup.lines.drawOn(screen, inner.withH(inner.h - 2), true);
     screen.separator(inner.moved(0, inner.h - 2).withPadX(-2).withH(1));
 
-    screen.labels(button, {L"OK"}, FG::BLACK | BG::GREY);
+    screen.labels(button, {L" <Enter> OK "}, FG::BLACK | BG::GREY);
+}
+
+bool MessagePopup::isVisible() {
+    return get().isPopupVisible();
 }
 
 MessagePopup& MessagePopup::get() {

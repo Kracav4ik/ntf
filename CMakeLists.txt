@@ -13,6 +13,8 @@ set(SOURCES
         CopyMovePopup.h
         DiskPopup.cpp
         DiskPopup.h
+        EditableText.cpp
+        EditableText.h
         FilePanel.cpp
         FilePanel.h
         LineEdit.cpp

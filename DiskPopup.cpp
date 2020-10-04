@@ -222,7 +222,7 @@ void DiskPopup::registerKeys(Screen& screen) {
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         if (selectDisk) {
             selectDisk();
-            isVisible = false;
+            visible = false;
         }
     });
 }
@@ -232,7 +232,7 @@ void DiskPopup::setOnSelectFunc(std::function<void()> func) {
 }
 
 void DiskPopup::drawOn(Screen& screen) {
-    if (!isVisible) {
+    if (!visible) {
         return;
     }
     Rect rect = popupRect();
@@ -275,5 +275,5 @@ void DiskPopup::show(bool left) {
     fillDrivesList();
     updateDiskInfo();
     isLeft = left;
-    isVisible = true;
+    visible = true;
 }

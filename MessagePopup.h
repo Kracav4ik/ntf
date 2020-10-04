@@ -13,6 +13,7 @@ public:
     static void show(std::vector<std::wstring> text);
     static void registerKeys(Screen& screen);
     static void drawOn(Screen& screen);
+    static bool isVisible();
 
 private:
     MessagePopup() = default;

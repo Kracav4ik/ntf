@@ -2,20 +2,28 @@
 
 #include "Screen.h"
 #include "colors.h"
+#include "Popup.h"
+#include "MessagePopup.h"
 
-void LineEdit::setText(const std::wstring& newText) {
-    text = newText;
+LineEdit::LineEdit(Screen& screen, Popup* owner, SHORT w)
+    : editable(screen.getEditable())
+    , owner(owner)
+    , w(w)
+{
+}
+
+void LineEdit::setText(std::wstring newText) {
+    editable.setText(std::move(newText), w);
+    editable.setEnabledGetter([this]() {
+        return !MessagePopup::isVisible() && owner->isPopupVisible();
+    });
 }
 
 std::wstring LineEdit::getText() const {
-    return text;
+    return editable.getText();
 }
 
-void LineEdit::registerKeys(Screen& screen, Popup* owner) {
-    // TODO
-}
-
-void LineEdit::drawOn(Screen& screen, COORD pos, SHORT w, WORD colorAttr) {
+void LineEdit::drawOn(Screen& screen, COORD pos, WORD colorAttr) {
     screen.paintRect({pos.X, pos.Y, w, 1}, colorAttr);
-    screen.textOut(pos, text);
+    editable.drawOn(screen, pos, !MessagePopup::isVisible());
 }

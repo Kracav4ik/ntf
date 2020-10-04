@@ -9,7 +9,7 @@ class Screen;
 
 class MakeDirPopup : Popup {
 public:
-    MakeDirPopup(SHORT w, SHORT h);
+    MakeDirPopup(Screen& screen, SHORT w, SHORT h);
 
     void setOnUpdateDirs(std::function<void()> func);
 

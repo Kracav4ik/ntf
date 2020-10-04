@@ -8,7 +8,7 @@ class Screen;
 
 class CopyMovePopup : Popup {
 public:
-    CopyMovePopup(SHORT w, SHORT h);
+    CopyMovePopup(Screen& screen, SHORT w, SHORT h);
 
     void show(bool isCopy, const std::wstring& fromRoot, const std::wstring& fromName, const std::wstring& toRoot);
     void registerKeys(Screen& screen);

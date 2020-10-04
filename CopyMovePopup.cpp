@@ -3,13 +3,15 @@
 #include "Screen.h"
 #include "colors.h"
 
-CopyMovePopup::CopyMovePopup(SHORT w, SHORT h)
-    : w(w), h(h)
+CopyMovePopup::CopyMovePopup(Screen& screen, SHORT w, SHORT h)
+    : w(w)
+    , h(h)
+    , newName(screen, this, w - 8)
 {
 }
 
 void CopyMovePopup::show(bool isCopy, const std::wstring& fromRoot, const std::wstring& fromName, const std::wstring& toRoot) {
-    isVisible = true;
+    visible = true;
     showCopy = isCopy;
     oldName = fromName;
     oldRoot = fromRoot;
@@ -22,12 +24,12 @@ void CopyMovePopup::registerKeys(Screen& screen) {
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         // TODO copy/move files here
-        isVisible = false;
+        visible = false;
     });
 }
 
 void CopyMovePopup::drawOn(Screen& screen) {
-    if (!isVisible) {
+    if (!visible) {
         return;
     }
     auto center = screen.center();
@@ -42,7 +44,7 @@ void CopyMovePopup::drawOn(Screen& screen) {
     Rect inner = frameRect.withPadding(2, 2);
     std::wstring action = showCopy ? L"Копировать " : L"Переместить ";
     screen.textOut(inner.getLeftTop(), action + oldName + L" в:");
-    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), inner.w, FG::BLACK | BG::DARK_CYAN);
+    newName.drawOn(screen, inner.moved(0, 1).getLeftTop(), FG::BLACK | BG::DARK_CYAN);
 
     Rect sep = frameRect.moved(0, frameRect.h - 3).withH(1);
     screen.separator(sep);

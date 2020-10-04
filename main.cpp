@@ -33,7 +33,6 @@ int main() {
 
     Screen s(80, 25);
     s.setTitle(L"Not too far");
-    s.setCursorVisible(false);
 
     std::wstring appDir = getFullPath(L".");
 
@@ -42,8 +41,8 @@ int main() {
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
     DiskPopup diskPopup(3, 27, 3, 50, 18);
     AttrChangePopup attrChangePopup(50, 16);
-    CopyMovePopup copyMovePopup(70, 10);
-    MakeDirPopup makeDirPopup(70, 10);
+    CopyMovePopup copyMovePopup(s, 70, 10);
+    MakeDirPopup makeDirPopup(s, 70, 10);
     RemoveDirPopup removeDirPopup(70, 10);
     Lines bottom;
 
@@ -57,11 +56,11 @@ int main() {
         s.labelsFill({0, (SHORT)(s.h() - 1), s.w(), 1}, {
             L"Alt-F1/F2 Диск",
             L"F2 Новый",
-            L"F4 Атр.",
-            L"F5 Копир.",
-            L"F6 Перен.",
+            L"F4 Атрибуты",
+            L"F5 Копия",
+            L"F6 Перенос",
             L"F7 Папка",
-            L"F8 Удал.",
+            L"F8 Удалить",
             L"F10 Выход",
         }, FG::BLACK | BG::DARK_CYAN);
 

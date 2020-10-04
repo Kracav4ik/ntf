@@ -9,5 +9,5 @@ public:
 protected:
     void registerClosing(Screen& screen);
 
-    bool isVisible = false;
+    bool visible = false;
 };

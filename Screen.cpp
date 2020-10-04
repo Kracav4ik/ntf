@@ -62,6 +62,7 @@ Screen::~Screen() {
 }
 
 void Screen::clear(WORD colorAttr) {
+    setCursorVisible(false);
     paintRect({0, 0, width, height}, colorAttr);
 }
 
@@ -206,6 +207,12 @@ void Screen::setCursorVisible(bool visible) {
     SetConsoleCursorInfo(nextConsole, &info);
 }
 
+void Screen::setCursorPos(SHORT x, SHORT y) {
+    COORD pos{x, y};
+    SetConsoleCursorPosition(currConsole, pos);
+    SetConsoleCursorPosition(nextConsole, pos);
+}
+
 SHORT Screen::w() const {
     return width;
 }
@@ -218,20 +225,27 @@ COORD Screen::center() const {
     return {(SHORT)(width / 2), (SHORT)(height / 2)};
 }
 
+EditableText& Screen::getEditable() {
+    return editable;
+}
+
 void Screen::processEvent() {
     INPUT_RECORD event;
     DWORD count;
     ReadConsoleInputW(stdinHandle, &event, 1, &count);
     if (count == 1 && event.EventType == KEY_EVENT) {
-        const auto& keyEvent = event.Event.KeyEvent;
+        auto& keyEvent = event.Event.KeyEvent;
         if (keyEvent.bKeyDown != TRUE) {
             return;
         }
-        WORD keyState = fixAltCtrl(keyEvent.dwControlKeyState & (ANY_ALT_PRESSED | ANY_CTRL_PRESSED | SHIFT_PRESSED));
-        DWORD key = makeKey(keyEvent.wVirtualKeyCode, keyState);
+        keyEvent.dwControlKeyState = fixAltCtrl(keyEvent.dwControlKeyState & (ANY_ALT_PRESSED | ANY_CTRL_PRESSED | SHIFT_PRESSED));
+        DWORD key = makeKey(keyEvent.wVirtualKeyCode, keyEvent.dwControlKeyState);
         auto globalIt = priorityHandlers.find(key);
         if (globalIt != priorityHandlers.end()) {
             globalIt->second();
+            return;
+        }
+        if (editable.isEnabled() && editable.consumeEvent(keyEvent)) {
             return;
         }
         for (Popup* owner : ownersOrder) {

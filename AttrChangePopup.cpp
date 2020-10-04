@@ -32,7 +32,7 @@ AttrChangePopup::AttrChangePopup(SHORT w, SHORT h)
 }
 
 void AttrChangePopup::show(const std::wstring& fileRoot, const std::wstring& fileName) {
-    isVisible = true;
+    visible = true;
     root = fileRoot;
     name = fileName;
     std::wstring path = root + L"\\" + name;
@@ -61,7 +61,7 @@ void AttrChangePopup::registerKeys(Screen& screen) {
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         // TODO change attributes here
-        isVisible = false;
+        visible = false;
     });
     screen.handleKey(this, VK_SPACE, 0, [this]() {
         int selected = attrText.getSelectedIdx();
@@ -79,7 +79,7 @@ void AttrChangePopup::registerKeys(Screen& screen) {
 }
 
 void AttrChangePopup::drawOn(Screen& screen) {
-    if (!isVisible) {
+    if (!visible) {
         return;
     }
     auto center = screen.center();

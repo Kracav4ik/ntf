@@ -6,6 +6,8 @@
 #include <functional>
 #include <map>
 
+#include "EditableText.h"
+
 #define ANY_ALT_PRESSED (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)
 #define ANY_CTRL_PRESSED (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)
 
@@ -75,10 +77,13 @@ public:
 
     void setTitle(const std::wstring& title);
     void setCursorVisible(bool visible);
+    void setCursorPos(SHORT x, SHORT y);
 
     SHORT w() const;
     SHORT h() const;
     COORD center() const;
+
+    EditableText& getEditable();
 
     void processEvent();
     void appendOwner(Popup* owner);
@@ -95,6 +100,8 @@ private:
     HANDLE origConsole;
     HANDLE currConsole;
     HANDLE nextConsole;
+
+    EditableText editable;
 
     std::vector<Popup*> ownersOrder;
     std::map<DWORD, std::function<void()>> priorityHandlers;
