@@ -1,6 +1,7 @@
 #include "Screen.h"
 
 #include "Popup.h"
+#include "utils.h"
 
 #include <memory>
 #include <cwchar>
@@ -66,8 +67,9 @@ void Screen::clear(WORD colorAttr) {
     paintRect({0, 0, width, height}, colorAttr);
 }
 
-void Screen::paintRect(const Rect& rect, WORD colorAttr, bool clearChars) {
+void Screen::paintRect(Rect rect, WORD colorAttr, bool clearChars) {
     DWORD _unused;
+    rect = adjust(rect);
     COORD origin = rect.getLeftTop();
     for (int i = 0; i < rect.h; ++i) {
         if (clearChars) {
@@ -88,6 +90,8 @@ void Screen::textOut(COORD pos, const std::wstring& text, DWORD size) {
 }
 
 void Screen::boundedLine(COORD pos, SHORT w, const std::wstring& text, bool centered) {
+    pos = adjust(pos);
+    w = clamp((SHORT)0, w, this->w());
     if (w < 1) {
         return;
     }
@@ -109,7 +113,8 @@ void Screen::boundedLine(COORD pos, SHORT w, const std::wstring& text, bool cent
     }
 }
 
-void Screen::frame(const Rect& rect, bool fat) {
+void Screen::frame(Rect rect, bool fat) {
+    rect = adjust(rect);
     SHORT w = rect.w;
     SHORT h = rect.h;
     if (w < 2 || h < 2) {
@@ -133,7 +138,8 @@ void Screen::frame(const Rect& rect, bool fat) {
     FillConsoleOutputCharacterW(nextConsole, corners[RB], 1, {rb.X, rb.Y}, &_unused);
 }
 
-void Screen::separator(const Rect& rect, bool fatLine, bool fatEnds) {
+void Screen::separator(Rect rect, bool fatLine, bool fatEnds) {
+    rect = adjust(rect);
     const auto& style = fatLine ? FAT : SLIM;
     const std::wstring& lines = style.lines;
     const std::wstring& joins = fatEnds ? style.joinToFat : style.joinToSlim;
@@ -163,7 +169,8 @@ void Screen::labelsFill(const Rect& rect, const std::vector<std::wstring>& label
     labels(rect, labelsList, colorAttr, -1);
 }
 
-void Screen::labels(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator) {
+void Screen::labels(Rect rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator) {
+    rect = adjust(rect);
     int labelsWidthSum = 0;
     for (const auto& label : labelsList) {
         labelsWidthSum += label.size();
@@ -281,6 +288,20 @@ void Screen::handleKey(WORD virtualKey, WORD modifiers, std::function<void()> ca
 
 void Screen::handleKey(Popup* owner, WORD virtualKey, WORD modifiers, std::function<void()> callback) {
     handlersByPopup[owner].emplace(makeKey(virtualKey, fixAltCtrl(modifiers)), std::move(callback));
+}
+
+Rect Screen::adjust(Rect rect) {
+    rect.x = clamp(0, (int)rect.x, w() - 1);
+    rect.y = clamp(0, (int)rect.y, h() - 1);
+    rect.w = clamp(0, (int)rect.w, w() - rect.x);
+    rect.h = clamp(0, (int)rect.h, h() - rect.y);
+    return rect;
+}
+
+COORD Screen::adjust(COORD pos) {
+    pos.X = clamp(0, (int)pos.X, w() - 1);
+    pos.Y = clamp(0, (int)pos.Y, h() - 1);
+    return pos;
 }
 
 HANDLE Screen::createBuffer(SHORT width, SHORT height) {

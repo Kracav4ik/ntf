@@ -1,6 +1,12 @@
 #include "EditableText.h"
 
 #include "Screen.h"
+#include "MessagePopup.h"
+#include "utils.h"
+
+void EditableText::setTextSizeMax(int textMax) {
+    textSizeMax = textMax;
+}
 
 std::wstring EditableText::getText() const {
     return currentText;
@@ -8,6 +14,9 @@ std::wstring EditableText::getText() const {
 
 void EditableText::setText(std::wstring text, int maxLineSize, int cursor) {
     currentText = std::move(text);
+    if (textSizeMax != -1 && currentText.size() > textSizeMax) {
+        currentText.resize(textSizeMax);
+    }
     lineSize = maxLineSize;
     if (cursor == -1) {
         cursor = currentText.size();
@@ -64,6 +73,9 @@ bool EditableText::consumeEvent(const KEY_EVENT_RECORD& event) {
             auto dataPtr = GlobalLock(data);
             if (dataPtr) {
                 std::wstring text((const wchar_t*)dataPtr);
+                if (textSizeMax != -1 && text.size() + currentText.size() > textSizeMax) {
+                    text.resize(std::max(0, textSizeMax - (int)currentText.size()));
+                }
                 currentText.insert(cursorOffset, text);
                 setCursorOffset(cursorOffset + text.size());
                 GlobalUnlock(data);
@@ -73,8 +85,10 @@ bool EditableText::consumeEvent(const KEY_EVENT_RECORD& event) {
         return true;
     }
     if (event.uChar.UnicodeChar >= L' ') {
-        currentText.insert(cursorOffset, 1, event.uChar.UnicodeChar);
-        setCursorOffset(cursorOffset + 1);
+        if (textSizeMax == -1 || currentText.size() < textSizeMax) {
+            currentText.insert(cursorOffset, 1, event.uChar.UnicodeChar);
+            setCursorOffset(cursorOffset + 1);
+        }
         return true;
     }
     return false;
@@ -87,7 +101,7 @@ void EditableText::drawOn(Screen& screen, COORD origin, bool showCursor) {
 }
 
 void EditableText::setCursorOffset(int newOffset) {
-    newOffset = std::max(0, std::min(newOffset, (int)currentText.size()));
+    newOffset = clamp(0, newOffset, (int)currentText.size());
     cursorOffset = newOffset;
     if (cursorOffset < lineOffset) {
         lineOffset = cursorOffset;

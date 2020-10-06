@@ -3,6 +3,7 @@
 #include "FilePanel.h"
 #include "colors.h"
 #include "MessagePopup.h"
+#include "utils.h"
 
 static const SHORT BOTTOM = 3;
 
@@ -107,7 +108,7 @@ void FilePanel::enter() {
             newPath = path + L'\\' + selectedName;
         }
         if (!canChangeDir(newPath)) {
-            MessagePopup::show({L"Cannot change dir to " + newPath});
+            MessagePopup::show({L"Невозможно зайти в папку", newPath, getLastErrorText()});
             return;
         }
         path = std::move(newPath);

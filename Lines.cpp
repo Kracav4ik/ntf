@@ -1,6 +1,7 @@
 #include "Lines.h"
 
 #include "Screen.h"
+#include "utils.h"
 
 std::vector<StyledText> styledText(std::vector<std::wstring> textLines, WORD normalAttr, WORD selectedAttr) {
     std::vector<StyledText> result;
@@ -41,7 +42,7 @@ std::wstring Lines::getSelectedText() const {
 }
 
 void Lines::setSelectedIdx(int newIdx) {
-    selectedIdx = std::max(-1, std::min(newIdx, (int)lines.size() - 1));
+    selectedIdx = clamp(-1, newIdx, (int)lines.size() - 1);
 }
 
 bool Lines::hasSelection() const {
@@ -95,7 +96,7 @@ int Lines::getScrollOffset() const {
 }
 
 void Lines::setScrollOffset(int newOffset) {
-    scrollOffset = std::max(0, std::min(newOffset, (int)lines.size() - 1));
+    scrollOffset = clamp(0, newOffset, (int)lines.size() - 1);
 }
 
 void Lines::drawTextOn(Screen& screen, const Rect& rect, bool centered) {

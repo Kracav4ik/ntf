@@ -3,6 +3,7 @@
 #include "Screen.h"
 #include "colors.h"
 #include "MessagePopup.h"
+#include "utils.h"
 
 MakeDirPopup::MakeDirPopup(Screen& screen, SHORT w, SHORT h)
     : w(w)
@@ -32,21 +33,8 @@ void MakeDirPopup::registerKeys(Screen& screen) {
         std::wstring path = dirRoot + L"\\" + name;
 
         if(CreateDirectoryW(path.c_str(), nullptr) == 0) {
-            DWORD lastError = GetLastError();
-            switch(lastError) {
-                case ERROR_ALREADY_EXISTS:
-                    MessagePopup::show({L"Папка уже существует"});
-                    return;
-                case ERROR_PATH_NOT_FOUND:
-                    MessagePopup::show({L"Путь не найден"});
-                    return;
-                case ERROR_INVALID_NAME:
-                    MessagePopup::show({L"Неверное имя папки"});
-                    return;
-                default:
-                    MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
-                    return;
-            }
+            MessagePopup::show({L"Ошибка создания папки:", getLastErrorText()});
+            return;
         }
         updateDirs();
         visible = false;

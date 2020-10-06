@@ -3,6 +3,7 @@
 #include "Screen.h"
 #include "MessagePopup.h"
 #include "colors.h"
+#include "utils.h"
 
 #include <iostream>
 
@@ -27,21 +28,8 @@ void RemoveDirPopup::registerKeys(Screen& screen) {
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         if (RemoveDirectoryW(toDelete.c_str()) == 0) {
-            DWORD lastError = GetLastError();
-            switch(lastError) {
-                case ERROR_DIR_NOT_EMPTY:
-                    MessagePopup::show({L"Папка не пуста"});
-                    return;
-                case ERROR_DIRECTORY:
-                    MessagePopup::show({L"Объект не является папкой"});
-                    return;
-                case ERROR_ACCESS_DENIED:
-                    MessagePopup::show({L"Нет доступа"});
-                    return;
-                default:
-                    MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
-                    return;
-            }
+            MessagePopup::show({L"Ошибка удаления папки:", getLastErrorText()});
+            return;
         }
         updateDirs();
         visible = false;

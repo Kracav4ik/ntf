@@ -9,6 +9,8 @@ class Screen;
 
 class EditableText {
 public:
+    void setTextSizeMax(int textMax);
+
     std::wstring getText() const;
     void setText(std::wstring text, int maxLineSize, int cursor = -1);
 
@@ -26,4 +28,5 @@ private:
     int lineSize;
     int cursorOffset;
     int lineOffset;
+    int textSizeMax = -1;
 };

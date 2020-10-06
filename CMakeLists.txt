@@ -34,6 +34,8 @@ set(SOURCES
         Screen.h
         MakeFilePopup.cpp
         MakeFilePopup.h
+        utils.cpp
+        utils.h
 )
 
 add_executable(ntf ${SOURCES})

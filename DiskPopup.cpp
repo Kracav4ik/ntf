@@ -2,6 +2,7 @@
 
 #include "Screen.h"
 #include "colors.h"
+#include "utils.h"
 
 #include <iostream>
 #include <sstream>
@@ -43,20 +44,6 @@ std::wstring getByteSizeText(uint64_t num) {
         result << num / (double)T << L" Т";
     }
     return result.str();
-}
-
-std::wstring align(const std::wstring& s, int size) {
-    if (s.size() > size) {
-        s.substr(0, size);
-    }
-    return s + std::wstring(size - s.size(), L' ');
-}
-
-std::wstring to_hex(DWORD num) {
-    std::wstringstream s;
-    s << std::setfill(L'0') << std::setw(2*sizeof(num)) << std::hex;
-    s << num;
-    return s.str();
 }
 
 std::vector<std::wstring> getDriveString() {

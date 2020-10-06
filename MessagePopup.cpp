@@ -3,7 +3,7 @@
 #include "Screen.h"
 #include "colors.h"
 
-static const SHORT OK_WIDTH = 8;
+static const std::wstring OK_TEXT = L" <Enter> OK ";
 
 void MessagePopup::show(std::vector<std::wstring> text) {
     MessagePopup& popup = get();
@@ -31,7 +31,7 @@ void MessagePopup::drawOn(Screen& screen) {
     if (!popup.visible) {
         return;
     }
-    SHORT w = std::max(OK_WIDTH, (SHORT) popup.maxWidth);
+    SHORT w = std::max((int)OK_TEXT.size() + 2, popup.maxWidth);
     SHORT h = popup.linesCount + 2;
     auto center = screen.center();
 
@@ -49,7 +49,7 @@ void MessagePopup::drawOn(Screen& screen) {
     popup.lines.drawOn(screen, inner.withH(inner.h - 2), true);
     screen.separator(inner.moved(0, inner.h - 2).withPadX(-2).withH(1));
 
-    screen.labels(button, {L" <Enter> OK "}, FG::BLACK | BG::GREY);
+    screen.labels(button, {OK_TEXT}, FG::BLACK | BG::GREY);
 }
 
 bool MessagePopup::isVisible() {

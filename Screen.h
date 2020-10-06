@@ -65,14 +65,14 @@ public:
     ~Screen();
 
     void clear(WORD colorAttr);
-    void paintRect(const Rect& rect, WORD colorAttr, bool clearChars = true);
+    void paintRect(Rect rect, WORD colorAttr, bool clearChars = true);
     void textOut(COORD pos, const std::wstring& text);
     void textOut(COORD pos, const std::wstring& text, DWORD size);
     void boundedLine(COORD pos, SHORT w, const std::wstring& text, bool centered = false);
-    void frame(const Rect& rect, bool fat = true);
-    void separator(const Rect& rect, bool fatLine = false, bool fatEnds = true);
+    void frame(Rect rect, bool fat = true);
+    void separator(Rect rect, bool fatLine = false, bool fatEnds = true);
     void labelsFill(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr);
-    void labels(const Rect& rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator = 2);
+    void labels(Rect rect, const std::vector<std::wstring>& labelsList, WORD colorAttr, int separator = 2);
     void flip();
 
     void setTitle(const std::wstring& title);
@@ -92,6 +92,8 @@ public:
     void handleKey(Popup* owner, WORD virtualKey, WORD modifiers, std::function<void()> callback);
 
 private:
+    Rect adjust(Rect rect);
+    COORD adjust(COORD rect);
     static HANDLE createBuffer(SHORT width, SHORT height);
 
     SHORT width;

@@ -3,6 +3,7 @@
 #include "Screen.h"
 #include "colors.h"
 #include "MessagePopup.h"
+#include "utils.h"
 
 MakeFilePopup::MakeFilePopup(Screen& screen, SHORT w, SHORT h)\
     : w(w)
@@ -32,21 +33,8 @@ void MakeFilePopup::registerKeys(Screen& screen) {
         std::wstring path = dirRoot + L"\\" + name;
 
         if(CreateFileW(path.c_str(), 0, 0, nullptr, CREATE_NEW, 0, nullptr) == INVALID_HANDLE_VALUE) {
-            DWORD lastError = GetLastError();
-            switch(lastError) {
-                case ERROR_FILE_EXISTS:
-                    MessagePopup::show({L"Файл уже существует"});
-                    return;
-                case ERROR_ACCESS_DENIED:
-                    MessagePopup::show({L"Ошибка доступа"});
-                    return;
-                case ERROR_INVALID_NAME:
-                    MessagePopup::show({L"Неверное имя файла"});
-                    return;
-                default:
-                    MessagePopup::show({L"Ошибка " + std::to_wstring(lastError)});
-                    return;
-            }
+            MessagePopup::show({L"Ошибка создания файла:", getLastErrorText()});
+            return;
         }
         updateDirs();
         visible = false;

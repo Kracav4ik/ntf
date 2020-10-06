@@ -41,7 +41,7 @@ int main() {
     FilePanel leftPanel({0, 0, 40, 23}, appDir);
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
     DiskPopup diskPopup(3, 27, 3, 50, 18);
-    AttrChangePopup attrChangePopup(50, 16);
+    AttrChangePopup attrChangePopup(s, 50, 16);
     CopyMovePopup copyMovePopup(s, 70, 10);
     MakeDirPopup makeDirPopup(s, 70, 10);
     MakeFilePopup makeFilePopup(s, 70, 10);
