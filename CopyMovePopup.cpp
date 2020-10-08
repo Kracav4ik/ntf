@@ -2,6 +2,8 @@
 
 #include "Screen.h"
 #include "colors.h"
+#include "utils.h"
+#include "MessagePopup.h"
 
 CopyMovePopup::CopyMovePopup(Screen& screen, SHORT w, SHORT h)
     : w(w)
@@ -23,7 +25,24 @@ void CopyMovePopup::registerKeys(Screen& screen) {
     screen.appendOwner(this);
     registerClosing(screen);
     screen.handleKey(this, VK_RETURN, 0, [this]() {
-        // TODO copy/move files here
+        auto oldPath = oldRoot + L"\\" + oldName;
+        auto newPath = newRoot + L"\\" + newName.getText();
+        if (showCopy) {
+            if (isDir(oldPath)) {
+                MessagePopup::show({L"Ошибка копирования:", L"Копирование папок не поддерживается."});
+                return;
+            }
+            if (CopyFileW(oldPath.c_str(), newPath.c_str(), TRUE) == 0) {
+                MessagePopup::show({L"Ошибка копирования:", getLastErrorText()});
+                return;
+            }
+        } else {
+            if (MoveFileExW(oldPath.c_str(), newPath.c_str(), MOVEFILE_COPY_ALLOWED) == 0) {
+                MessagePopup::show({L"Ошибка копирования:", getLastErrorText()});
+                return;
+            }
+        }
+        updateDirs();
         visible = false;
     });
 }
@@ -50,4 +69,8 @@ void CopyMovePopup::drawOn(Screen& screen) {
     screen.separator(sep);
 
     screen.labels(sep.moved(0, 1), {L" <Enter> OK ", L" <Esc> Отмена "}, FG::BLACK | BG::DARK_CYAN);
+}
+
+void CopyMovePopup::setOnUpdateDirs(std::function<void()> func) {
+    updateDirs = std::move(func);
 }

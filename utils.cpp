@@ -4,6 +4,10 @@
 #include <sstream>
 #include <iomanip>
 
+bool isDir(const std::wstring& path) {
+    return GetFileAttributesW(path.c_str()) & FILE_ATTRIBUTE_DIRECTORY;
+}
+
 std::wstring getLastErrorText() {
     return getLastErrorText(GetLastError());
 }

@@ -125,15 +125,14 @@ int main() {
         diskPopup.show(false);
     });
 
-    makeDirPopup.setOnUpdateDirs([&](){
-        getCurrentPanel().updateLines();
-    });
-    makeFilePopup.setOnUpdateDirs([&](){
-        getCurrentPanel().updateLines();
-    });
-    removeDirPopup.setOnUpdateDirs([&](){
-        getCurrentPanel().updateLines();
-    });
+    auto updateDirs = [&]() {
+        leftPanel.updateLines();
+        rightPanel.updateLines();
+    };
+    makeDirPopup.setOnUpdateDirs(updateDirs);
+    makeFilePopup.setOnUpdateDirs(updateDirs);
+    removeDirPopup.setOnUpdateDirs(updateDirs);
+    copyMovePopup.setOnUpdateDirs(updateDirs);
 
     s.handleKey(VK_F2, 0, [&]() {
         makeFilePopup.show(getCurrentPanel().getPath());

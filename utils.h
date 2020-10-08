@@ -4,6 +4,7 @@
 
 #include <string>
 
+bool isDir(const std::wstring& path);
 std::wstring getLastErrorText();
 std::wstring getLastErrorText(DWORD lastError);
 

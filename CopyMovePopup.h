@@ -14,6 +14,8 @@ public:
     void registerKeys(Screen& screen);
     void drawOn(Screen& screen);
 
+    void setOnUpdateDirs(std::function<void()> func);
+
 private:
     SHORT w;
     SHORT h;
@@ -22,4 +24,5 @@ private:
     std::wstring oldRoot;
     LineEdit newName;
     std::wstring newRoot;
+    std::function<void()> updateDirs;
 };
