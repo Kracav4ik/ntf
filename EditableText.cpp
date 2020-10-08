@@ -84,7 +84,7 @@ bool EditableText::consumeEvent(const KEY_EVENT_RECORD& event) {
         }
         return true;
     }
-    if (event.uChar.UnicodeChar >= L' ') {
+    if (event.uChar.UnicodeChar >= L' ' && event.uChar.UnicodeChar != L'\x7f') {
         if (textSizeMax == -1 || currentText.size() < textSizeMax) {
             currentText.insert(cursorOffset, 1, event.uChar.UnicodeChar);
             setCursorOffset(cursorOffset + 1);
