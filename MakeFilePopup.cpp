@@ -32,10 +32,12 @@ void MakeFilePopup::registerKeys(Screen& screen) {
         }
         std::wstring path = dirRoot + L"\\" + name;
 
-        if(CreateFileW(path.c_str(), 0, 0, nullptr, CREATE_NEW, 0, nullptr) == INVALID_HANDLE_VALUE) {
+        HANDLE created = CreateFileW(path.c_str(), 0, 0, nullptr, CREATE_NEW, 0, nullptr);
+        if(created == INVALID_HANDLE_VALUE) {
             MessagePopup::show({L"Ошибка создания файла:", getLastErrorText()});
             return;
         }
+        CloseHandle(created);
         updateDirs();
         visible = false;
     });
