@@ -133,6 +133,13 @@ void FilePanel::drawOn(Screen& s) {
     s.frame(rect);
     Rect separatorRect = linesRect.moved(0, linesRect.h).withH(1).withPadX(-1);
     s.separator(separatorRect);
+    std::wstring title = L" " + path;
+
+    if (path[path.size() - 1] == L':') {
+       title += L"\\";
+    }
+    title += L" ";
+    s.boundedLine(rect.moved(1, 0).getLeftTop(), rect.w - 2, title, true);
 }
 
 const std::wstring& FilePanel::getPath() const {
