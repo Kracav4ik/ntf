@@ -40,7 +40,7 @@ int main() {
     bool running = true;
     FilePanel leftPanel({0, 0, 40, 23}, appDir);
     FilePanel rightPanel({40, 0, 40, 23}, appDir);
-    DiskPopup diskPopup(3, 27, 3, 50, 18);
+    DiskPopup diskPopup(3, 27, 3, 55, 18);
     AttrChangePopup attrChangePopup(s, 50, 16);
     CopyMovePopup copyMovePopup(s, 70, 10);
     MakeDirPopup makeDirPopup(s, 70, 10);

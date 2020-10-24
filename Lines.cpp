@@ -95,6 +95,10 @@ int Lines::getScrollOffset() const {
     return scrollOffset;
 }
 
+int Lines::getLinesCount() const {
+    return lines.size();
+}
+
 void Lines::setScrollOffset(int newOffset) {
     scrollOffset = clamp(0, newOffset, (int)lines.size() - 1);
 }

@@ -5,10 +5,8 @@
 #include "utils.h"
 
 #include <iostream>
-#include <sstream>
 #include <iomanip>
 
-static const SHORT INFO_LINES = 4;
 static const int TYPE_W = 20;
 static const int TOTAL_W = 12;
 static const int FREE_W = 12;
@@ -46,6 +44,45 @@ std::wstring getByteSizeText(uint64_t num) {
     return result.str();
 }
 
+std::vector<std::wstring> getFlagsStrings(DWORD sysFlags) {
+    std::vector<std::wstring> words;
+    if (sysFlags & FILE_CASE_PRESERVED_NAMES) words.emplace_back(L"CASE_NAMES");
+    if (sysFlags & FILE_CASE_SENSITIVE_SEARCH) words.emplace_back(L"CASE_SEARCH");
+    if (sysFlags & FILE_FILE_COMPRESSION) words.emplace_back(L"FILE_COMPR");
+    if (sysFlags & FILE_NAMED_STREAMS) words.emplace_back(L"NAMED_STREAMS");
+    if (sysFlags & FILE_PERSISTENT_ACLS) words.emplace_back(L"PERSIST_ACLS");
+    if (sysFlags & FILE_READ_ONLY_VOLUME) words.emplace_back(L"RO_VOLUME");
+    if (sysFlags & FILE_SEQUENTIAL_WRITE_ONCE) words.emplace_back(L"SEQ_WRITE_ONCE");
+    if (sysFlags & FILE_SUPPORTS_ENCRYPTION) words.emplace_back(L"ENCRYPT");
+    if (sysFlags & FILE_SUPPORTS_EXTENDED_ATTRIBUTES) words.emplace_back(L"EXT_ATTR");
+    if (sysFlags & FILE_SUPPORTS_HARD_LINKS) words.emplace_back(L"HARD_LINKS");
+    if (sysFlags & FILE_SUPPORTS_OBJECT_IDS) words.emplace_back(L"OBJECT_IDS");
+    if (sysFlags & FILE_SUPPORTS_OPEN_BY_FILE_ID) words.emplace_back(L"OPEN_BY_FILE_ID");
+    if (sysFlags & FILE_SUPPORTS_REPARSE_POINTS) words.emplace_back(L"REPARSE_POINTS");
+    if (sysFlags & FILE_SUPPORTS_SPARSE_FILES) words.emplace_back(L"SPARSE_FILES");
+    if (sysFlags & FILE_SUPPORTS_TRANSACTIONS) words.emplace_back(L"TRANSACTIONS");
+    if (sysFlags & FILE_SUPPORTS_USN_JOURNAL) words.emplace_back(L"USN_JOURNAL");
+    if (sysFlags & FILE_UNICODE_ON_DISK) words.emplace_back(L"UNICODE");
+    if (sysFlags & FILE_VOLUME_IS_COMPRESSED) words.emplace_back(L"VOLUME_COMPR");
+    if (sysFlags & FILE_VOLUME_QUOTAS) words.emplace_back(L"VOLUME_QUOTAS");
+
+    std::vector<std::wstring> lines;
+
+    std::wstring currentString = L"Флаги ФС:";
+    for (const auto& word : words) {
+        if ((currentString + word).size() > 47) {
+            lines.emplace_back(currentString);
+            currentString = word;
+        } else {
+            if (!currentString.empty()) {
+                currentString += L" ";
+            }
+            currentString += word;
+        }
+    }
+    lines.emplace_back(currentString);
+    return lines;
+}
 std::vector<std::wstring> getDriveString() {
     DWORD size = GetLogicalDriveStringsW(0, nullptr);
     std::vector<wchar_t> chars(size);
@@ -155,14 +192,18 @@ void DiskPopup::updateDiskInfo() {
     if (volumeStr.empty()) {
         volumeStr = getDriveType(rootName) + L" " + rootName.substr(0, 2);
     }
+    auto flags = getFlagsStrings(sysFlags);
     std::wstring fileSysStr = fileSysName.data();
 
-    diskInfo.setLines(styledText({
-        L"Название тома: " + volumeStr,
-        L"Файловая система: " + fileSysStr,
-        L"Серийный номер: " + to_hex(serialNum),
-        L"Флаги файловой системы: " + to_hex(sysFlags),
-    }, FG::WHITE | BG::DARK_CYAN, FG::WHITE | BG::BLACK));
+    auto lines = std::vector<std::wstring>{
+            L"Название тома: " + volumeStr,
+            L"Файловая система: " + fileSysStr,
+            L"Серийный номер: " + to_hex(serialNum)
+    };
+
+    lines.insert(lines.end(), flags.begin(), flags.end());
+
+    diskInfo.setLines(styledText(lines, FG::WHITE | BG::DARK_CYAN, FG::WHITE | BG::BLACK));
 }
 
 bool DiskPopup::isLeftPopup() const {
@@ -178,33 +219,33 @@ void DiskPopup::registerKeys(Screen& screen) {
     registerClosing(screen);
     screen.handleKey(this, VK_UP, 0, [this]() {
         diskList.selectPrev();
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_DOWN, 0, [this]() {
         diskList.selectNext();
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_PRIOR, 0, [this]() {
         diskList.moveSelection(-diskListRect().h + 1);
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_NEXT, 0, [this]() {
         diskList.moveSelection(diskListRect().h - 1);
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_HOME, 0, [this]() {
         diskList.selectFirst();
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_END, 0, [this]() {
         diskList.selectLast();
-        diskList.scrollToSelection(diskListRect().h);
         updateDiskInfo();
+        diskList.scrollToSelection(diskListRect().h);
     });
     screen.handleKey(this, VK_RETURN, 0, [this]() {
         if (selectDisk) {
@@ -250,12 +291,12 @@ Rect DiskPopup::innerRect() const {
 
 Rect DiskPopup::diskListRect() const {
     Rect inner = innerRect();
-    return inner.moved(0, 1).withH(inner.h - INFO_LINES - 2);
+    return inner.moved(0, 1).withH(inner.h - diskInfo.getLinesCount() - 2);
 }
 
 Rect DiskPopup::diskInfoRect() const {
     Rect listRect = diskListRect();
-    return listRect.moved(0, listRect.h + 1).withH(INFO_LINES);
+    return listRect.moved(0, listRect.h + 1).withH(diskInfo.getLinesCount());
 }
 
 void DiskPopup::show(bool left) {

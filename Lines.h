@@ -37,6 +37,7 @@ public:
     void scrollToSelection(int visibleHeight);
 
     int getScrollOffset() const;
+    int getLinesCount() const;
     void setScrollOffset(int newOffset);
 
     void drawTextOn(Screen& screen, const Rect& rect, bool centered = false);
